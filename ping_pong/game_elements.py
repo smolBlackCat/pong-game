@@ -6,14 +6,17 @@ import pygame
 import pygame.sprite as sprite
 
 
-class Paddle:
+class Paddle(sprite.Sprite):
     """Game's paddle."""
 
     def __init__(self, screen):
+        sprite.Sprite.__init__(self)
         self.screen = screen
         self.screen_rect = screen.get_rect()
-        self.rect = pygame.Rect(0, 0, 100, 20)
+        self.image = pygame.Surface((100, 20))
+        self.rect = self.image.get_rect()
         self.colour = (200, 200, 200)
+        self.image.fill(self.colour)
         self.speed = 10
 
         # Sets paddle initial position
@@ -24,8 +27,8 @@ class Paddle:
         self.going_right = False
 
     def draw(self):
-        """Draws the paddle on the screen"""
-        pygame.draw.rect(self.screen, self.colour, self.rect)
+        """Draws the game's paddle on the screen."""
+        self.screen.blit(self.image, self.rect)
 
     def update(self):
         """Updates the paddle position and another attributes."""
@@ -34,13 +37,19 @@ class Paddle:
         elif self.going_left and self.rect.left > self.screen_rect.left:
             self.rect.x -= self.speed
 
-class Ball:
+class Ball(sprite.Sprite):
     """Game's ball."""
 
     def __init__(self, screen):
+        sprite.Sprite.__init__(self)
         self.screen = screen
         self.screen_rect = screen.get_rect()
-        self.rect = pygame.Rect(300, 200, 30, 30)
+        self.image = pygame.Surface((30, 30))
+
+        self.rect = self.image.get_rect()
+        self.rect.centerx = self.screen_rect.centerx
+        self.rect.centery = self.screen_rect.centery
+
         self.colours = []
         for c in range(10):
             colour = (random.randint(0, 255), random.randint(0, 255),
@@ -53,46 +62,33 @@ class Ball:
     def draw(self):
         """Draws the ball on the screen."""
 
-        pygame.draw.rect(self.screen, self.current_colour, self.rect)
+        self.image.fill(self.current_colour)
+        self.screen.blit(self.image, self.rect)
 
-    def update(self, paddle):
+    def update(self):
         """Updates the ball position and another attributes."""
+
         self.rect.x += self.speedx
         self.rect.y += self.speedy
 
-        # Checks the case of collisions
-        if self.rect.right > self.screen_rect.right:
-            # Has collided on the right side, come back as it should.
-            self.speedx *= -1
-            self.current_colour = random.choice(self.colours)
-        elif self.rect.left < self.screen_rect.left:
-            # Has collided on the left side, come back as it should.
-            self.speedx *= -1
-            self.current_colour = random.choice(self.colours)
-        elif self.rect.top < self.screen_rect.top:
-            # Has collided on the top, come back as it should.
-            self.speedy *= -1
-            self.current_colour = random.choice(self.colours)
-        elif self.rect.colliderect(paddle):
-            self.speedy *= -1
 
-
-class StaticBalls(Ball, sprite.Sprite):
+class StaticBall(sprite.Sprite):
     """Similar to the Ball, but this time it's static. Will serve as a
     target."""
 
     def __init__(self, screen, posx, posy):
-        super().__init__(screen)
         sprite.Sprite.__init__(self)
-
-        self.current_colour = random.choice(self.colours)
+        self.screen = screen
+        self.screen_rect = screen.get_rect()
+        self.colour = (random.randint(0,255), random.randint(0,255),
+                       random.randint(0,255))
+        self.image = pygame.Surface((30, 30))
+        self.image.fill(self.colour)
+        self.rect = self.image.get_rect()
         self.rect.x = posx
         self.rect.y = posy
 
     def draw(self):
         """Draw the static ball on the screen."""
-        pygame.draw.rect(self.screen, self.current_colour, self.rect)
 
-    def update(self):
-        """Does nothing. After all, it's a static ball."""
-        return None
+        self.screen.blit(self.image, self.rect)
