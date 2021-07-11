@@ -20,7 +20,7 @@ class Paddle(sprite.Sprite):
         self.speed = 10
 
         # Sets paddle initial position
-        self.rect.x = self.screen_rect.centerx
+        self.rect.centerx = self.screen_rect.centerx
         self.rect.y = self.screen_rect.bottom - 20
 
         self.going_left = False
@@ -70,6 +70,13 @@ class Ball(sprite.Sprite):
 
         self.rect.x += self.speedx
         self.rect.y += self.speedy
+
+    def reset_pos(self):
+        """Updates the position to the initial positon that the ball
+        started."""
+
+        self.rect.centerx = self.screen_rect.centerx
+        self.rect.centery = self.screen_rect.centery
 
 
 class StaticBall(sprite.Sprite):

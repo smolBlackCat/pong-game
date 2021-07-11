@@ -1,4 +1,5 @@
 """Game module."""
+
 import random
 import sys
 
@@ -7,6 +8,7 @@ import pygame.sprite as sprite
 from pygame.locals import *
 
 from . import game_elements
+from . import interface_elements
 
 pygame.init()
 
@@ -33,10 +35,12 @@ def handle_keyup_events(event, paddle):
     elif event.key == K_RIGHT:
         paddle.going_right = False
 
-def handle_game_actions(ball, paddle, balls_barrier):
+def handle_game_actions(ball, paddle, balls_barrier,score_board, screen):
     """Handles actions like collisions."""
 
-    if sprite.spritecollide(ball, balls_barrier, True):
+    if targets_hit := sprite.spritecollide(ball, balls_barrier, True):
+        score_board.points += len(targets_hit)
+        score_board.update()
         ball.speedy *= -1
     # Checks the case of collisions between the ball and the paddle.
     if ball.rect.right >= ball.screen_rect.right:
@@ -51,7 +55,14 @@ def handle_game_actions(ball, paddle, balls_barrier):
         # Has collided on the top, come back as it should.
         ball.speedy *= -1
         ball.current_colour = random.choice(ball.colours)
-    elif ball.rect.colliderect(paddle):
+    elif ball.rect.bottom > ball.screen_rect.bottom:
+        # Restart the game
+        ball.reset_pos()
+        ball.speedy *= -1
+        balls_barrier.empty()
+        generate_barrier(balls_barrier, screen)
+    #FIXME: Implement a better collision
+    elif paddle.rect.colliderect(ball):
         ball.speedy *= -1
 
 
@@ -83,6 +94,10 @@ def main():
     balls_barrier = sprite.Group()
     generate_barrier(balls_barrier, screen)
 
+    # Interface elements
+    score_board = interface_elements.ScoreBoard(screen)
+    life_remaining_board = interface_elements.LifeRemaining(screen)
+
     while True:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -93,12 +108,16 @@ def main():
             elif event.type == KEYUP:
                 handle_keyup_events(event, paddle)
 
-        clock.tick(60)
+        clock.tick(40)
         screen.fill((68, 68, 68))
+
         paddle.draw()
         ball.draw()
+        score_board.draw()
+        life_remaining_board.draw()
         balls_barrier.draw(screen)
+
         paddle.update()
         ball.update()
-        handle_game_actions(ball, paddle, balls_barrier)
+        handle_game_actions(ball, paddle, balls_barrier,score_board, screen)
         pygame.display.update()
