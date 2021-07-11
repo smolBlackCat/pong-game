@@ -56,10 +56,8 @@ class LifeRemaining(sprite.Sprite):
 		super().__init__()
 		self.screen = screen
 		self.screen_rect = screen.get_rect()
-		self.group = sprite.Group()
-		for c in range(3):
-			life_unit = self.LifeUnit(screen)
-			self.group.add(life_unit)
+		self.group = []
+		self.fill()
 
 	def draw(self):
 		"""Draws the remaining life on the screen."""
@@ -76,3 +74,13 @@ class LifeRemaining(sprite.Sprite):
 		like when the user loses one live.
 		"""
 		pass
+
+	def poll(self):
+		"""Take out one unit of life. It will self update."""
+		self.group.pop(0)
+
+	def fill(self):
+		"""Fill the group with three lives."""
+		for c in range(3):
+			life_unit = self.LifeUnit(self.screen)
+			self.group.append(life_unit)

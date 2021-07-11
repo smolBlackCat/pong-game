@@ -10,7 +10,7 @@ class Paddle(sprite.Sprite):
     """Game's paddle."""
 
     def __init__(self, screen):
-        sprite.Sprite.__init__(self)
+        super().__init__()
         self.screen = screen
         self.screen_rect = screen.get_rect()
         self.image = pygame.Surface((100, 20))
@@ -41,7 +41,7 @@ class Ball(sprite.Sprite):
     """Game's ball."""
 
     def __init__(self, screen):
-        sprite.Sprite.__init__(self)
+        super().__init__()
         self.screen = screen
         self.screen_rect = screen.get_rect()
         self.image = pygame.Surface((30, 30))
@@ -84,7 +84,7 @@ class StaticBall(sprite.Sprite):
     target."""
 
     def __init__(self, screen, posx, posy):
-        sprite.Sprite.__init__(self)
+        super().__init__()
         self.screen = screen
         self.screen_rect = screen.get_rect()
         self.colour = (random.randint(0,255), random.randint(0,255),
