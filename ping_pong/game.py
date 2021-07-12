@@ -13,30 +13,20 @@ from . import interface_elements
 
 pygame.init()
 
-
 # Game constants
 SCREEN_WIDTH = 600
 SCREEN_HEIGHT = 400
 
-# Game stats
-RUNNING = False
-ON_INFO = False
-PAUSED = False
-GAME_OVER = False
 
-
-def handle_keydown_events(event, paddle):
+def handle_keydown_events(game_stats, event, paddle):
     """Handle all the buttons whether they are pressed."""
-
-    global PAUSED
-    global GAME_OVER
 
     if event.key == K_LEFT:
         paddle.going_left = True
     elif event.key == K_RIGHT:
         paddle.going_right = True
-    elif event.key == K_p and not GAME_OVER:
-        PAUSED = not PAUSED
+    elif event.key == K_p and not game_stats.is_game_over():
+        game_stats.set_paused(not game_stats.is_paused())
 
 
 def handle_keyup_events(event, paddle):
@@ -47,11 +37,10 @@ def handle_keyup_events(event, paddle):
     elif event.key == K_RIGHT:
         paddle.going_right = False
 
-def handle_game_actions(ball, paddle, balls_barrier, score_board,
+
+def handle_game_actions(game_stats, ball, paddle, balls_barrier, score_board,
                         remaining_life, screen):
     """Handles actions like collisions."""
-
-    global GAME_OVER
 
     if targets_hit := sprite.spritecollide(ball, balls_barrier, True):
         score_board.points += len(targets_hit)
@@ -61,28 +50,26 @@ def handle_game_actions(ball, paddle, balls_barrier, score_board,
     if ball.rect.right >= ball.screen_rect.right:
         # Has collided on the right side, come back as it should.
         ball.speedx *= -1
-        ball.current_colour = random.choice(ball.colours)
     elif ball.rect.left <= ball.screen_rect.left:
         # Has collided on the left side, come back as it should.
         ball.speedx *= -1
-        ball.current_colour = random.choice(ball.colours)
     elif ball.rect.top <= ball.screen_rect.top:
         # Has collided on the top, come back as it should.
         ball.speedy *= -1
-        ball.current_colour = random.choice(ball.colours)
     elif ball.rect.bottom > ball.screen_rect.bottom:
         # Restart the game
         if len(remaining_life.group) == 0:
-            GAME_OVER = True
+            game_stats.set_game_over(True)
             return
         ball.reset_pos()
         ball.speedy *= -1
         balls_barrier.empty()
         generate_barrier(balls_barrier, screen)
         remaining_life.poll()
-    #FIXME: Implement a better collision
-    elif paddle.rect.colliderect(ball):
+    elif paddle.rect.colliderect(ball) and ball.speedy > 0:
         ball.speedy *= -1
+    elif len(balls_barrier) == 0:
+        generate_barrier(balls_barrier, screen)
 
 
 def restart_game(screen, ball, balls_barrier, life_remaining_board):
@@ -108,13 +95,11 @@ def show_pause_message(screen):
     screen.blit(rendered_text, text_rect)
 
 
-def show_game_over_message(screen, ball, balls_barrier, life_remaining_board):
+def show_game_over_message(game_stats, screen, ball, balls_barrier,
+                           life_remaining_board):
     """Shows the game over message and gives the user the options to
     try again or to return to the main menu.
     """
-
-    global GAME_OVER
-    global RUNNING
 
     pygame.mouse.set_visible(True)
     text_font = font.SysFont("Arial", bold=True, size=14)
@@ -146,20 +131,18 @@ def show_game_over_message(screen, ball, balls_barrier, life_remaining_board):
     mouse_pos = pygame.mouse.get_pos()
     mouse_pressed = pygame.mouse.get_pressed()
     if try_again_rect.collidepoint(mouse_pos) and mouse_pressed[0]:
-        GAME_OVER = False
+        game_stats.set_game_over(False)
         restart_game(screen, ball, balls_barrier, life_remaining_board)
     elif main_menu_rect.collidepoint(mouse_pos) and mouse_pressed[0]:
         restart_game(screen, ball, balls_barrier, life_remaining_board)
-        GAME_OVER = False
-        RUNNING = False
+        game_stats.set_game_over(False)
+        game_stats.set_running(False)
 
 
-def show_game_info(screen):
+def show_game_info(game_stats, screen):
     """Shows the game instructions to the user."""
 
-    global ON_INFO
-
-    ON_INFO = True
+    game_stats.set_on_info(True)
 
     title_text_font = font.SysFont("Arial", bold=True, size=16)
     title_colour = (255, 255, 255)
@@ -212,31 +195,28 @@ def show_game_info(screen):
                                              title_colour, (0, 0, 68))
     return_rect = return_button.get_rect()
     return_rect.centerx = screen.get_rect().centerx
-    return_rect.bottom = screen.get_rect().bottom
+    return_rect.bottom = screen.get_rect().bottom - 20
     screen.blit(return_button, return_rect)
 
     # Check for any click on the button
     mouse_pos = pygame.mouse.get_pos()
     mouse_pressed = pygame.mouse.get_pressed()
     if return_rect.collidepoint(mouse_pos) and mouse_pressed[0]:
-        ON_INFO = False
+        game_stats.set_on_info(False)
 
 
-def show_main_menu(screen):
+def show_main_menu(game_stats, screen):
     """Shows the game main menu."""
 
-    global RUNNING
-    global ON_INFO
-
-    if not ON_INFO:
+    if not game_stats.is_on_info():
         text_font = font.SysFont("Arial", bold=True, size=16)
         colour = (255, 255, 255)
         red = (69, 0, 0)
 
         rendered_title_text = text_font.render("North-east Science:", True, colour)
         rendered_title_text2 = text_font.render("Pong Game", True, colour)
-        rendered_start_text = text_font.render("START", True, colour, red)
-        rendered_info_text = text_font.render("HOW TO PLAY", True, colour, red)
+        rendered_start_text = text_font.render("START", True, colour)
+        rendered_info_text = text_font.render("HOW TO PLAY", True, colour)
 
         centerx = screen.get_rect().centerx
         centery = screen.get_rect().centery
@@ -257,25 +237,31 @@ def show_main_menu(screen):
         info_rect.centerx = centerx
         info_rect.centery = centery + 80
 
+        # Inflating rectangles
+        start_rect.inflate_ip(10, 10)
+        info_rect.inflate_ip(10, 10)
+
         # Main Menu title
         screen.blit(rendered_title_text, title_rect)
         screen.blit(rendered_title_text2, title2_rect)
 
         # Options Menu
+        pygame.draw.rect(screen, red, start_rect, border_radius=10)
         screen.blit(rendered_start_text, start_rect)
+        pygame.draw.rect(screen, red, info_rect, border_radius=10)
         screen.blit(rendered_info_text, info_rect)
 
         # Check clicks
         mouse_pos = pygame.mouse.get_pos()
         mouse_pressed = pygame.mouse.get_pressed()
         if start_rect.collidepoint(mouse_pos) and mouse_pressed[0]:
-            RUNNING = True
+            game_stats.set_running(True)
             pygame.mouse.set_visible(False)
         elif info_rect.collidepoint(mouse_pos) and mouse_pressed[0]:
             # Show game info
-            show_game_info(screen)
+            show_game_info(game_stats, screen)
     else:
-        show_game_info(screen)
+        show_game_info(game_stats, screen)
 
 def generate_barrier(balls_barrier, screen):
     """Create a bunch of ball to get hit by the main ball."""
@@ -295,9 +281,6 @@ def generate_barrier(balls_barrier, screen):
 def main():
     """Main Program"""
 
-    global RUNNING
-    global PAUSED
-
     # Game basics
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Pong Game. (With physics)")
@@ -305,6 +288,7 @@ def main():
     
 
     # Game elements
+    game_stats = game_elements.GameStats()
     paddle = game_elements.Paddle(screen)
     ball = game_elements.Ball(screen)
     balls_barrier = sprite.Group()
@@ -322,30 +306,30 @@ def main():
                 pygame.quit()
                 sys.exit(0)
             elif event.type == KEYDOWN:
-                handle_keydown_events(event, paddle)
+                handle_keydown_events(game_stats, event, paddle)
             elif event.type == KEYUP:
                 handle_keyup_events(event, paddle)
 
         clock.tick(40)
         screen.fill((68, 68, 68))
-        if RUNNING:
+        if game_stats.is_running():
             paddle.draw()
             ball.draw()
             score_board.draw()
             life_remaining_board.draw()
             balls_barrier.draw(screen)
-            if PAUSED:
+            if game_stats.is_paused():
                 # Code that pauses the game and show a pause message.
                 show_pause_message(screen)
-            elif GAME_OVER:
+            elif game_stats.is_game_over():
                 # Code stops the game and show a game over message
-                show_game_over_message(screen, ball, balls_barrier,
+                show_game_over_message(game_stats, screen, ball, balls_barrier,
                                        life_remaining_board)
             else:
                 paddle.update()
                 ball.update()
-                handle_game_actions(ball, paddle, balls_barrier, score_board,
-                                    life_remaining_board, screen)
+                handle_game_actions(game_stats, ball, paddle, balls_barrier,
+                                    score_board, life_remaining_board, screen)
         else:
-            show_main_menu(screen)
+            show_main_menu(game_stats, screen)
         pygame.display.update()
