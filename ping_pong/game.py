@@ -106,37 +106,32 @@ def show_game_over_message(game_stats, screen, ball, balls_barrier,
     game_over_colour = (214, 45, 32)
     try_again_colour = (0, 135, 68)
 
+    centerx = screen.get_rect().centerx
+    centery = screen.get_rect().centery
+
     game_over = text_font.render("GAME OVER", False, game_over_colour)
     game_over_rect = game_over.get_rect()
-    game_over_rect.centerx = screen.get_rect().centerx
-    game_over_rect.centery = screen.get_rect().centery
+    game_over_rect.centerx = centerx
+    game_over_rect.centery = centery
 
-    try_again = text_font.render("TRY AGAIN", False, (255, 255, 255),
-                                 try_again_colour)
-    try_again_rect = try_again.get_rect()
-    try_again_rect.centerx = screen.get_rect().centerx - try_again.get_width()
-    try_again_rect.centery = screen.get_rect().centery + game_over.get_height()
-
-    main_menu = text_font.render("MAIN MENU", False, (255, 255, 255),
-                                 game_over_colour)
-    main_menu_rect = main_menu.get_rect()
-    main_menu_rect.centerx = screen.get_rect().centerx + try_again.get_width()
-    main_menu_rect.centery = screen.get_rect().centery + game_over.get_height()
+    try_again_button = interface_elements.Button(
+        screen, try_again_colour, "TRY AGAIN", centerx - 120,
+        centery + 40, lambda: game_stats.set_game_over(False),
+        lambda: restart_game(screen, ball, balls_barrier, life_remaining_board)
+    )
+    main_menu_button = interface_elements.Button(
+        screen, game_over_colour, "MAIN MENU", centerx + 40,
+        centery + 40, lambda:game_stats.set_game_over(False),
+        lambda: restart_game(screen, ball, balls_barrier, life_remaining_board),
+        lambda: game_stats.set_running(False)
+    )
 
     screen.blit(game_over, game_over_rect)
-    screen.blit(try_again, try_again_rect)
-    screen.blit(main_menu, main_menu_rect)
+    try_again_button.draw()
+    main_menu_button.draw()
 
-    # Check clicks
-    mouse_pos = pygame.mouse.get_pos()
-    mouse_pressed = pygame.mouse.get_pressed()
-    if try_again_rect.collidepoint(mouse_pos) and mouse_pressed[0]:
-        game_stats.set_game_over(False)
-        restart_game(screen, ball, balls_barrier, life_remaining_board)
-    elif main_menu_rect.collidepoint(mouse_pos) and mouse_pressed[0]:
-        restart_game(screen, ball, balls_barrier, life_remaining_board)
-        game_stats.set_game_over(False)
-        game_stats.set_running(False)
+    try_again_button.update()
+    main_menu_button.update()
 
 
 def show_game_info(game_stats, screen):
@@ -191,18 +186,13 @@ def show_game_info(game_stats, screen):
         screen.blit(objective_text, objective_text_rect)
 
     # Button to return to the main menu
-    return_button = message_text_font.render("Return to the main menu", True,
-                                             title_colour, (0, 0, 68))
-    return_rect = return_button.get_rect()
-    return_rect.centerx = screen.get_rect().centerx
-    return_rect.bottom = screen.get_rect().bottom - 20
-    screen.blit(return_button, return_rect)
-
-    # Check for any click on the button
-    mouse_pos = pygame.mouse.get_pos()
-    mouse_pressed = pygame.mouse.get_pressed()
-    if return_rect.collidepoint(mouse_pos) and mouse_pressed[0]:
-        game_stats.set_on_info(False)
+    return_button = interface_elements.Button(
+        screen, (0, 0, 68), "RETURN TO THE MAIN MENU",
+        screen.get_rect().centerx, screen.get_rect().bottom - 40,
+        lambda: game_stats.set_on_info(False)
+    )
+    return_button.draw()
+    return_button.update()
 
 
 def show_main_menu(game_stats, screen):
@@ -215,8 +205,6 @@ def show_main_menu(game_stats, screen):
 
         rendered_title_text = text_font.render("North-east Science:", True, colour)
         rendered_title_text2 = text_font.render("Pong Game", True, colour)
-        rendered_start_text = text_font.render("START", True, colour)
-        rendered_info_text = text_font.render("HOW TO PLAY", True, colour)
 
         centerx = screen.get_rect().centerx
         centery = screen.get_rect().centery
@@ -229,37 +217,23 @@ def show_main_menu(game_stats, screen):
         title2_rect.centerx = title_rect.centerx
         title2_rect.centery = centery - 90
 
-        start_rect = rendered_start_text.get_rect()
-        start_rect.centery = centery + 40
-        start_rect.centerx = centerx
-
-        info_rect = rendered_info_text.get_rect()
-        info_rect.centerx = centerx
-        info_rect.centery = centery + 80
-
-        # Inflating rectangles
-        start_rect.inflate_ip(10, 10)
-        info_rect.inflate_ip(10, 10)
-
         # Main Menu title
         screen.blit(rendered_title_text, title_rect)
         screen.blit(rendered_title_text2, title2_rect)
 
-        # Options Menu
-        pygame.draw.rect(screen, red, start_rect, border_radius=10)
-        screen.blit(rendered_start_text, start_rect)
-        pygame.draw.rect(screen, red, info_rect, border_radius=10)
-        screen.blit(rendered_info_text, info_rect)
-
-        # Check clicks
-        mouse_pos = pygame.mouse.get_pos()
-        mouse_pressed = pygame.mouse.get_pressed()
-        if start_rect.collidepoint(mouse_pos) and mouse_pressed[0]:
-            game_stats.set_running(True)
-            pygame.mouse.set_visible(False)
-        elif info_rect.collidepoint(mouse_pos) and mouse_pressed[0]:
-            # Show game info
-            show_game_info(game_stats, screen)
+        start_button = interface_elements.Button(
+            screen, red, "START", centerx-40, centery+40,
+            lambda: game_stats.set_running(True),
+            lambda:pygame.mouse.set_visible(False)
+        )
+        info_button = interface_elements.Button(
+            screen, red, "HOW TO PLAY", centerx-40, centery+80,
+            lambda: show_game_info(game_stats, screen)
+        )
+        start_button.draw()
+        info_button.draw()
+        start_button.update()
+        info_button.update()
     else:
         show_game_info(game_stats, screen)
 
@@ -310,7 +284,7 @@ def main():
             elif event.type == KEYUP:
                 handle_keyup_events(event, paddle)
 
-        clock.tick(40)
+        clock.tick(30)
         screen.fill((68, 68, 68))
         if game_stats.is_running():
             paddle.draw()

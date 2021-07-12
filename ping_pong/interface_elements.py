@@ -84,3 +84,38 @@ class LifeRemaining(sprite.Sprite):
 		for c in range(3):
 			life_unit = self.LifeUnit(self.screen)
 			self.group.append(life_unit)
+
+
+class Button(sprite.Sprite):
+
+	def __init__(self, screen, colour, text, x, y, *actions):
+		self.screen = screen
+		self.screen_rect = screen.get_rect()
+
+		self.font = font.SysFont("Arial", bold=True, size=16)
+		self.text = self.font.render(text, False, (200,200,200))
+		self.text_rect = self.text.get_rect()
+		self.colour = colour or (68, 68, 98)
+		self.rect = self.text_rect.inflate(15, 15)
+
+		self.rect.x = x
+		self.rect.y = y
+		self.text_rect.centerx = self.rect.centerx
+		self.text_rect.centery = self.rect.centery
+
+		self.actions = actions
+
+	def draw(self):
+		"""Draw the button on the screen."""
+
+		pygame.draw.rect(self.screen, self.colour, self.rect, border_radius=10)
+		self.screen.blit(self.text, self.text_rect)
+
+	def update(self):
+		"""Gets the mouse position and execute actions."""
+
+		mouse_pos = pygame.mouse.get_pos()
+		mouse_pressed = pygame.mouse.get_pressed()
+		if self.rect.collidepoint(mouse_pos) and mouse_pressed[0]:
+			for action in self.actions:
+				action()
