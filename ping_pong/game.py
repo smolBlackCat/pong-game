@@ -271,6 +271,7 @@ def main():
     # Interface elements
     score_board = interface_elements.ScoreBoard(screen)
     life_remaining_board = interface_elements.LifeRemaining(screen)
+    blocks_rain = interface_elements.BlockRain(screen)
 
     pygame.mouse.set_visible(True)
 
@@ -284,7 +285,7 @@ def main():
             elif event.type == KEYUP:
                 handle_keyup_events(event, paddle)
 
-        clock.tick(30)
+        clock.tick(40)
         screen.fill((68, 68, 68))
         if game_stats.is_running():
             paddle.draw()
@@ -305,5 +306,7 @@ def main():
                 handle_game_actions(game_stats, ball, paddle, balls_barrier,
                                     score_board, life_remaining_board, screen)
         else:
+            blocks_rain.draw()
+            blocks_rain.update()
             show_main_menu(game_stats, screen)
         pygame.display.update()

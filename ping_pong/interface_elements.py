@@ -1,3 +1,5 @@
+import random
+
 import pygame
 import pygame.sprite as sprite
 import pygame.font as font
@@ -69,12 +71,6 @@ class LifeRemaining(sprite.Sprite):
 			life.draw()
 			row += 30
 
-	def update(self):
-		"""Updates this object image. It's responsible to get events
-		like when the user loses one live.
-		"""
-		pass
-
 	def poll(self):
 		"""Take out one unit of life. It will self update."""
 		self.group.pop(0)
@@ -119,3 +115,36 @@ class Button(sprite.Sprite):
 		if self.rect.collidepoint(mouse_pos) and mouse_pressed[0]:
 			for action in self.actions:
 				action()
+
+
+class BlockRain():
+	"""A quick block rain for the main menu."""
+
+	def __init__(self, screen):
+		self.screen = screen
+		self.screen_rect = screen.get_rect()
+
+		self.blocks = []
+		self.maximum_x = screen.get_width() - 30
+		for c in range(10):
+			block = pygame.Surface((30, 30))
+			block.fill([random.randrange(0, 255) for c in range(3)])
+
+			block_rect = block.get_rect()
+			block_rect.x = random.randrange(0, self.maximum_x)
+			block_rect.y = 0
+			self.blocks.append([block, block_rect])
+
+	def draw(self):
+		"""Draws all the fallen squares."""
+		for fallen_square in self.blocks:
+			self.screen.blit(fallen_square[0], fallen_square[1])
+
+	def update(self):
+		"""Updates and animates the fallen squares."""
+		for pos, fallen_square in enumerate(self.blocks):
+			fallen_square[1].y += random.randrange(1, 7)
+			fallen_square[1].x += random.randrange(-2, 2)
+			if fallen_square[1].bottom > self.screen_rect.bottom:
+				fallen_square[1].y = 0
+				fallen_square[1].x = random.randrange(0, self.maximum_x)
