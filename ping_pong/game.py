@@ -42,7 +42,8 @@ def handle_game_actions(game_stats, ball, paddle, balls_barrier, score_board,
                         remaining_life, screen):
     """Handles actions like collisions."""
 
-    if targets_hit := sprite.spritecollide(ball, balls_barrier, True):
+    targets_hit = sprite.spritecollide(ball, balls_barrier, True)
+    if targets_hit:
         score_board.points += len(targets_hit)
         score_board.update()
         ball.speedy *= -1
@@ -285,7 +286,7 @@ def main():
             elif event.type == KEYUP:
                 handle_keyup_events(event, paddle)
 
-        clock.tick(40)
+        clock.tick(60)
         screen.fill((68, 68, 68))
         if game_stats.is_running():
             paddle.draw()
