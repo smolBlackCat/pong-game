@@ -1,6 +1,0 @@
-# Compiled python files and cache
-__pycache__
-*.pyc
-
-# Virtual environments
-venv
