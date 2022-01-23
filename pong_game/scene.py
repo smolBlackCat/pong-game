@@ -1,5 +1,9 @@
 import pygame
 
+from .game_elements.ball import Ball
+
+from .game_elements.paddle import Paddle
+
 from . import effects, interface, utils
 
 
@@ -22,12 +26,6 @@ class Scene:
         # scene manager instance.
         self.scene_manager = None
 
-    def show(self):
-        """It shows the scene on the screen."""
-
-        self.draw()
-        self.update()
-
     def draw(self):
         """It draws the components of this scene in the screen."""
         pass
@@ -39,6 +37,36 @@ class Scene:
     def update_on_event(self, event):
         """It updates the components if a event occur."""
         pass
+
+
+class DebugScene(Scene):
+    """Simple scene class that displays a white background. Mainly
+    used to debug new stuff.
+    """
+
+    def __init__(self, screen):
+        super().__init__(screen)
+
+        self.bg = pygame.Surface(self.screen.get_size())
+        self.bg.fill((200, 200, 200))
+
+        self.rect = self.bg.get_rect()
+        self.rect.center = self.screen_rect.center
+
+        # Do whatever you want here
+        self.ball = Ball(screen)
+        self.ball.pos = [300, 200]
+
+    def draw(self):
+        self.screen.blit(self.bg, self.rect)
+        self.ball.draw()
+
+    def update_on_event(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                self.ball.pos[1] -= 100
+            elif event.key == pygame.K_DOWN:
+                self.ball.pos[1] += 100
 
 
 class IntroScene(Scene):
@@ -85,10 +113,16 @@ class MainMenuScene(Scene):
         self.game_title = interface.Label(
             screen, utils.load_image("main_menu/game_title.png"),
             effects.floating_animation, 120, self.screen_rect.top)
+
+        def play_button_action(): return self.scene_manager.change_view(
+            "on_game",
+            effects.FadeTransition(
+                self.screen, self.scene_manager, "on_game", (255, 255, 0)))
         self.play_button = interface.Button(
             screen, utils.load_image("main_menu/play_button_on.png"),
             utils.load_image("main_menu/play_button_off.png"),
-            utils.load_image("main_menu/play_button_clicked.png"))
+            utils.load_image("main_menu/play_button_clicked.png"),
+            play_button_action)
         self.settings_button = interface.Button(
             screen, utils.load_image("main_menu/settings_button_on.png"),
             utils.load_image("main_menu/settings_button_off.png"),
@@ -126,6 +160,47 @@ class MainMenuScene(Scene):
         self.quit_button.update(event)
 
 
+class GameScene(Scene):
+    """Shows the current game."""
+
+    def __init__(self, screen):
+        super().__init__(screen)
+
+        self.ball = Ball(screen)
+        self.paddle = Paddle(screen)
+
+        self.ball.x, self.ball.y = self.screen_rect.center
+
+        self.paddle.rect.centerx = self.screen_rect.centerx
+        self.paddle.rect.centery = self.screen_rect.centery + 100
+
+    def draw(self):
+        self.screen.fill((0, 0, 0))
+        self.ball.draw()
+        self.paddle.draw()
+    
+    def check_paddle_ball_collision(self):
+        if self.paddle.rect.collidepoint(self.ball.x, self.ball.y):
+            self.ball.yspeed *= -1
+
+    def update(self):
+        self.ball.update()
+        self.paddle.update()
+        self.check_paddle_ball_collision()
+
+    def update_on_event(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                self.paddle.move_left(True)
+            elif event.key == pygame.K_RIGHT:
+                self.paddle.move_right(True)
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_LEFT:
+                self.paddle.move_left(False)
+            elif event.key == pygame.K_RIGHT:
+                self.paddle.move_right(False)
+
+
 class SceneManager:
     """Manages the scenes in the main thread of the running game."""
 
@@ -159,9 +234,29 @@ class SceneManager:
         one behavior
         """
 
-        self.views[self.current_view].show()
+        self.views[self.current_view].draw()
         if self.on_transition:
             self.fx_object.animate()
+    
+    def update(self):
+        """It updates the components of the current scene in loop."""
+
+        if not self.on_transition:
+            self.views[self.current_view].update()
+
+    def update_on_event(self, event):
+        """It updates scenes based on events being read by the for
+        loop.
+
+        Args:
+
+            event:
+                A pygame Event object. This args is the event in the
+                for loop, that is responsible for reading each
+                event.
+        """
+
+        self.views[self.current_view].update_on_event(event)
 
     def _change_view(self, view_name):
         """It changes the current view directly."""
