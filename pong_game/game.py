@@ -14,7 +14,7 @@ def main() -> None:
     SCREEN_SIZE = (600, 400)
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode(SCREEN_SIZE)
-    pygame.display.set_caption("Game Main Menu Sample")
+    pygame.display.set_caption("Pong Game")
     pygame.display.set_icon(utils.load_image("icon.png"))
 
     # Game setup
