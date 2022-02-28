@@ -1,19 +1,30 @@
-import pygame
+import pygame.sprite as sprite
+
+from ..utils import load_image
 
 
-class Paddle:
+class Paddle(sprite.Sprite):
     """Class that represents the player. Literally a white rectangle
     that hit the ball up.
     """
 
     def __init__(self, screen):
+        """Initialises the Paddle object.
+        
+        Args:
+
+            screen:
+                A Surface object representing the window
+                background.
+        """
+
+        sprite.Sprite.__init__(self)
+
         self.screen = screen
         self.screen_rect = screen.get_rect()
 
-        self.base_colour = (255, 255, 255)
-        self.line_colour = (0, 0, 0)
-
-        self.rect = pygame.Rect(0, 0, 100, 20)
+        self.image = load_image("on_game/paddle.png")
+        self.rect = self.image.get_rect()
 
         self.moving_right = False
         self.moving_left = False
@@ -22,8 +33,7 @@ class Paddle:
     def draw(self):
         """It draws the paddle on the screen."""
 
-        pygame.draw.rect(self.screen, self.line_colour, self.rect, width=4)
-        pygame.draw.rect(self.screen, self.base_colour, self.rect)
+        self.screen.blit(self.image, self.rect)
 
     def move_left(self, moving: bool):
         self.moving_left = moving
@@ -33,6 +43,7 @@ class Paddle:
 
     def update(self):
         """It updates the paddle state."""
+
         if self.moving_right and self.rect.right <= self.screen_rect.right:
             self.rect.x += self.speed
         if self.moving_left and self.rect.left >= self.screen_rect.left:
