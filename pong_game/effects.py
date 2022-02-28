@@ -1,4 +1,4 @@
-import pygame
+import pygame.surface as surface
 
 
 class Transition:
@@ -27,12 +27,13 @@ class FadeTransition(Transition):
     the screens is fading.
     """
 
-    def __init__(self, screen, scene_manager, next_view, fade_colour, speed_factor=2):
+    def __init__(self, screen, scene_manager, next_view, fade_colour,
+                 speed_factor=2):
         super().__init__(screen, scene_manager, next_view)
         self.scene_manager = scene_manager
 
         # Fade elements
-        self.fade_bg = pygame.Surface(screen.get_size())
+        self.fade_bg = surface.Surface(screen.get_size())
         self.fade_bg.set_alpha(0)
         self.fade_bg.fill(fade_colour)
         self.rect = self.fade_bg.get_rect()
@@ -47,6 +48,7 @@ class FadeTransition(Transition):
 
     def animate(self):
         """It fades the screen to the next view."""
+
         if self.on_fade:
             if self.c == 1:
                 self.scene_manager.change_view(self.next_view)
