@@ -1,4 +1,3 @@
-import os
 import random
 
 import pygame.sprite as sprite
@@ -12,7 +11,7 @@ class Target(sprite.Sprite):
     be hit by the ball.
     """
 
-    def __init__(self, screen):
+    def __init__(self, screen, disable_soundfx=False):
         """Initialises the Target object. This object isn't used
         directly by the game but by the Targets class instead.
         
@@ -21,12 +20,18 @@ class Target(sprite.Sprite):
             screen:
                 A Surface object representing the window
                 background.
+            
+            disable_soundfx:
+                When True, the target doesn't make any sound when
+                hit.
         """
 
         sprite.Sprite.__init__(self)
 
         self.screen = screen
         self.screen_rect = screen.get_rect()
+
+        self.disable_soundfx = disable_soundfx
 
         self.image = surface.Surface((32, 32))
         self.rect = self.image.get_rect()
@@ -58,7 +63,8 @@ class Target(sprite.Sprite):
         if self.rect.top > self.screen_rect.bottom:
             # Simply disappears. Stop rendering the hit target.
             self.kill()
-            self.vanish_soundfx.play()
+            if not self.disable_soundfx:
+                self.vanish_soundfx.play()
         elif self.falling:
             # Simulates falling effect
             self.rect.y += 1
@@ -67,7 +73,7 @@ class Target(sprite.Sprite):
 class Targets:
     """A class that works as wrapper for a Group object."""
 
-    def __init__(self, screen):
+    def __init__(self, screen, disable_soundfx=False):
         """Initialises the Targets object.
         
         Args:
@@ -75,10 +81,16 @@ class Targets:
             screen:
                 A Surface object representing the window
                 background.
+            
+            disable_soundfx:
+                When True, the target doesn't make any sound when
+                hit.
         """
 
         self.screen = screen
         self.screen_rect = screen.get_rect()
+
+        self.disable_soundfx = disable_soundfx
 
         self.group = sprite.Group()
         self.recharge()
@@ -118,7 +130,8 @@ class Targets:
                 ball.xspeed *= -1
             elif abs(ball.rect.right - target.rect.left) < 10:
                 ball.xspeed *= -1
-            target.target_hit_soundfx.play()
+            if not target.disable_soundfx:
+                target.target_hit_soundfx.play()
             return True
         return False
 
@@ -158,7 +171,7 @@ class Targets:
 
         for y in range(5):
             for x in range(rows):
-                target = Target(self.screen)
+                target = Target(self.screen, self.disable_soundfx)
                 target.rect.x = xpos
                 target.rect.y = ypos
                 self.group.add(target)
