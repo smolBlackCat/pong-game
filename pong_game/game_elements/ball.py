@@ -7,7 +7,7 @@ class Ball(sprite.Sprite):
     game or anything else, like a demonstration.
     """
 
-    def __init__(self, screen):
+    def __init__(self, screen, free=False):
         """Initialises the Ball object.
         
         Args:
@@ -15,6 +15,12 @@ class Ball(sprite.Sprite):
             screen:
                 A Surface object representing the whole window
                 background.
+            
+            free:
+                A boolean value that indicates if the ball is in
+                game mode, that is it's working like it's in the
+                game. When False, it means that the ball is on a
+                match.
         """
         sprite.Sprite.__init__(self)
 
@@ -29,6 +35,34 @@ class Ball(sprite.Sprite):
         self.yspeed = 2
 
         self.points = 0
+
+        # It stores a function. Its behaviour may change depeding on
+        # the free arg.
+        self.get_collision = None
+
+        if free:
+            def movement_logic(paddle):
+                if self.rect.left <= self.screen_rect.left \
+                        or self.rect.right >= self.screen_rect.right:
+                    self.xspeed *= -1
+                if self.rect.top <= self.screen_rect.top \
+                        or self.rect.bottom >= self.screen_rect.bottom:
+                    self.yspeed *= -1
+
+            self.get_collision = movement_logic
+        else:
+            def movement_logic(paddle):
+                if self.rect.left <= self.screen_rect.left or self.rect.right >= self.screen_rect.right:
+                    self.hit_soundfx.play()
+                    self.xspeed *= -1
+                if self.rect.top <= self.screen_rect.top:
+                    self.hit_soundfx.play()
+                    self.yspeed *= -1
+
+                if self.rect.colliderect(paddle.rect) and self.yspeed > 0:
+                    self.hit_soundfx.play()
+                    self.yspeed *= -1
+            self.get_collision = movement_logic
 
     @property
     def x(self):
@@ -65,14 +99,4 @@ class Ball(sprite.Sprite):
         self.y += self.yspeed
 
         # Movement logic
-        if self.rect.left <= self.screen_rect.left \
-                or self.rect.right >= self.screen_rect.right:
-            self.hit_soundfx.play()
-            self.xspeed *= -1
-        if self.rect.top <= self.screen_rect.top:
-            self.hit_soundfx.play()
-            self.yspeed *= -1
-
-        if self.rect.colliderect(paddle.rect) and self.yspeed > 0:
-            self.hit_soundfx.play()
-            self.yspeed *= -1
+        self.get_collision(paddle)
