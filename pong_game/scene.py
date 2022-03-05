@@ -1,3 +1,5 @@
+import random
+
 import pygame.constants as constants
 import pygame.draw as draw
 import pygame.rect as rect
@@ -121,8 +123,34 @@ class IntroScene(Scene):
 class MainMenuScene(Scene):
     """A scene that shows the "game" main menu."""
 
+    class GameBackground:
+        """A background that looks like exactly like the game
+        dynamics.
+        """
+
+        def __init__(self, screen):
+            self.screen = screen
+            self.screen_rect = screen.get_rect()
+
+            # Game elements (the user won't control these)
+            self.ball = Ball(screen, True)
+            self.targets = Targets(screen, True)
+
+            self.ball.rect.center = self.screen_rect.center
+            self.targets.recharge()
+
+        def draw(self):
+            self.ball.draw()
+            self.targets.draw()
+        
+        def update(self):
+            self.ball.update(None)
+            self.targets.update(self.ball)
+
     def __init__(self, screen):
         super().__init__(screen)
+
+        self.background = self.GameBackground(screen)
 
         self.game_title = interface.Label(
             screen, utils.load_image("main_menu/game_title.png"),
@@ -174,12 +202,14 @@ class MainMenuScene(Scene):
 
     def draw(self):
         self.screen.fill((0, 0, 80))
+        self.background.draw()
         self.game_title.draw()
         self.play_button.draw()
         self.settings_button.draw()
         self.quit_button.draw()
 
     def update(self):
+        self.background.update()
         self.game_title.update()
         self.play_button.update()
         self.settings_button.update()
@@ -193,6 +223,49 @@ class MainMenuScene(Scene):
 
 class GameScene(Scene):
     """Scene responsible for being actually the minigame."""
+
+    class ColourChangingBackground:
+        """A class that represents a Surface that changes its colour
+        all the time.
+        """
+
+        def __init__(self, screen):
+            self.screen = screen
+            self.screen_rect = screen.get_rect()
+
+            self.bg = surface.Surface(screen.get_size())
+            self.colour = {
+                "r": [random.randint(0, 255), 1],
+                "g": [random.randint(0, 255), 1],
+                "b": [random.randint(0, 255), 1]
+            }
+        
+        def update_colours(self):
+            for key, colour_stats in self.colour.items():
+                if colour_stats[0] >= 255:
+                    self.colour[key][1] = -1
+                elif colour_stats[0] <= 0:
+                    self.colour[key][1] = 1
+
+                self.colour[key][0] += self.colour[key][1]
+
+        def draw(self):
+            """It draws the background on the screen."""
+            r = self.colour["r"][0]
+            g = self.colour["g"][0]
+            b = self.colour["b"][0]
+            self.screen.fill((r, g, b))
+        
+        def update(self):
+            """Updates the background."""
+
+            self.update_colours()
+
+        @staticmethod
+        def get_starting_value():
+            """Returns a integer between 0 and 255."""
+
+            return random.randrange(0, 255)
 
     def __init__(self, screen):
         super().__init__(screen)
@@ -214,6 +287,7 @@ class GameScene(Scene):
         self.targets = Targets(screen)
 
         # Interface elements
+        self.background = self.ColourChangingBackground(screen)
         self.countdown_number = interface.Label.from_text(
             screen, "1", (0, 0, 255), 36, 1, 1)
         self.scoreboard = interface.Label.from_text(
@@ -281,7 +355,7 @@ class GameScene(Scene):
             self.retry_button.draw()
         else:
             # Game is on
-            self.screen.fill((0, 0, 20))
+            self.background.draw()
             self.targets.draw()
             self.ball.draw()
             self.paddle.draw()
@@ -295,7 +369,6 @@ class GameScene(Scene):
         """It updates the game related elements."""
 
         if not (self.paused or self.on_countdown):
-            self.ball.update(self.paddle)
             if self.ball.rect.top > self.screen_rect.bottom:
                 self.restart()
                 self.attempts -= 1
@@ -303,6 +376,8 @@ class GameScene(Scene):
                     self.game_over = True
                     self.on_countdown = False
                     self.game_over_soundfx.play()
+            self.background.update()
+            self.ball.update(self.paddle)
             self.paddle.update()
             self.targets.update(self.ball)
             self.scoreboard.update_text(f"Score: {self.ball.points}")
