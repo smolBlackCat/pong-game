@@ -14,13 +14,13 @@ class Target(sprite.Sprite):
     def __init__(self, screen, disable_soundfx=False):
         """Initialises the Target object. This object isn't used
         directly by the game but by the Targets class instead.
-        
+
         Args:
-        
+
             screen:
                 A Surface object representing the window
                 background.
-            
+
             disable_soundfx:
                 When True, the target doesn't make any sound when
                 hit.
@@ -37,7 +37,7 @@ class Target(sprite.Sprite):
         self.rect = self.image.get_rect()
         self.image.fill(Target.random_colour())
         self.image.blit(utils.load_image("on_game/target.png"), self.rect)
-        
+
         self.vanish_soundfx = utils.load_soundfx(
             "on_game/soundfx/vanishing.wav")
         self.target_hit_soundfx = utils.load_soundfx(
@@ -75,13 +75,13 @@ class Targets:
 
     def __init__(self, screen, disable_soundfx=False):
         """Initialises the Targets object.
-        
+
         Args:
-        
+
             screen:
                 A Surface object representing the window
                 background.
-            
+
             disable_soundfx:
                 When True, the target doesn't make any sound when
                 hit.
@@ -103,16 +103,16 @@ class Targets:
     @staticmethod
     def _collision_handling(ball, target):
         """Detects collision between the ball and a target.
-        
+
         Args:
-        
+
             ball:
                 A Ball object that it's about to hit a target.
-            
+
             target:
                 A Target object that it's probably going to be hit
                 by the ball unless the verification says otherwise.
-        
+
         Returns
 
             A boolean value. Is True when the target is actually hit

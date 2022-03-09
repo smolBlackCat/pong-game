@@ -9,13 +9,13 @@ class Ball(sprite.Sprite):
 
     def __init__(self, screen, free=False):
         """Initialises the Ball object.
-        
+
         Args:
-        
+
             screen:
                 A Surface object representing the whole window
                 background.
-            
+
             free:
                 A boolean value that indicates if the ball is in
                 game mode, that is it's working like it's in the
@@ -87,9 +87,9 @@ class Ball(sprite.Sprite):
 
     def update(self, paddle):
         """It updates the movement of the ball.
-        
+
         Args:
-        
+
             paddle:
                 A paddle (player) object where the rect attribute
                 will be extracted.
