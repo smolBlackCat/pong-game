@@ -10,6 +10,7 @@ from . import effects, interface, utils
 from .game_elements.ball import Ball
 from .game_elements.paddle import Paddle
 from .game_elements.targets import Targets
+from .background import ColourChangingBackground, GameBackground
 
 # TODO: Create a settings view
 
@@ -45,9 +46,9 @@ class Scene:
 
     def update_on_event(self, event):
         """It updates the components if a event occur.
-        
+
         Args:
-        
+
             event:
                 This is an object passed by the iteration, that is
                 responsible for iterating all events
@@ -72,7 +73,7 @@ class DebugScene(Scene):
         self.rect.center = self.screen_rect.center
 
         # Do whatever you want here
-        self.test_rect = rect.Rect(0, 0, 75, 30)
+        self.test_rect = rect.Rect(0, 0, 10, 10)
         self.test_rect.center = self.screen_rect.center
 
     def draw(self):
@@ -123,34 +124,10 @@ class IntroScene(Scene):
 class MainMenuScene(Scene):
     """A scene that shows the "game" main menu."""
 
-    class GameBackground:
-        """A background that looks like exactly like the game
-        dynamics.
-        """
-
-        def __init__(self, screen):
-            self.screen = screen
-            self.screen_rect = screen.get_rect()
-
-            # Game elements (the user won't control these)
-            self.ball = Ball(screen, True)
-            self.targets = Targets(screen, True)
-
-            self.ball.rect.center = self.screen_rect.center
-            self.targets.recharge()
-
-        def draw(self):
-            self.ball.draw()
-            self.targets.draw()
-        
-        def update(self):
-            self.ball.update(None)
-            self.targets.update(self.ball)
-
     def __init__(self, screen):
         super().__init__(screen)
 
-        self.background = self.GameBackground(screen)
+        self.background = GameBackground(screen)
 
         self.game_title = interface.Label(
             screen, utils.load_image("main_menu/game_title.png"),
@@ -224,49 +201,6 @@ class MainMenuScene(Scene):
 class GameScene(Scene):
     """Scene responsible for being actually the minigame."""
 
-    class ColourChangingBackground:
-        """A class that represents a Surface that changes its colour
-        all the time.
-        """
-
-        def __init__(self, screen):
-            self.screen = screen
-            self.screen_rect = screen.get_rect()
-
-            self.bg = surface.Surface(screen.get_size())
-            self.colour = {
-                "r": [random.randint(0, 255), 1],
-                "g": [random.randint(0, 255), 1],
-                "b": [random.randint(0, 255), 1]
-            }
-        
-        def update_colours(self):
-            for key, colour_stats in self.colour.items():
-                if colour_stats[0] >= 255:
-                    self.colour[key][1] = -1
-                elif colour_stats[0] <= 0:
-                    self.colour[key][1] = 1
-
-                self.colour[key][0] += self.colour[key][1]
-
-        def draw(self):
-            """It draws the background on the screen."""
-            r = self.colour["r"][0]
-            g = self.colour["g"][0]
-            b = self.colour["b"][0]
-            self.screen.fill((r, g, b))
-        
-        def update(self):
-            """Updates the background."""
-
-            self.update_colours()
-
-        @staticmethod
-        def get_starting_value():
-            """Returns a integer between 0 and 255."""
-
-            return random.randrange(0, 255)
-
     def __init__(self, screen):
         super().__init__(screen)
 
@@ -287,15 +221,15 @@ class GameScene(Scene):
         self.targets = Targets(screen)
 
         # Interface elements
-        self.background = self.ColourChangingBackground(screen)
+        self.background = ColourChangingBackground(screen)
         self.countdown_number = interface.Label.from_text(
             screen, "1", (0, 0, 255), 36, 1, 1)
         self.scoreboard = interface.Label.from_text(
             screen, f"Score: {self.ball.points}", (255, 255, 255), 16, 17, 1,
             True, antialised=True)
         self.game_over_label = interface.Label.from_text(
-                screen, "GAME OVER", (255, 255, 255), 20, 10, 0, True,
-                antialised=True)
+            screen, "GAME OVER", (255, 255, 255), 20, 10, 0, True,
+            antialised=True)
         self.retry_button = interface.Button(
             screen, utils.load_image("on_game/retry_button_on.png"),
             utils.load_image("on_game/retry_button_off.png"),
