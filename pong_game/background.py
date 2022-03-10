@@ -2,10 +2,11 @@
 
 import random
 
+import pygame.sprite as sprite
 import pygame.surface as surface
 
+from .game_elements import target
 from .game_elements.ball import Ball
-from .game_elements.targets import Targets
 
 
 class BaseBackground:
@@ -37,14 +38,14 @@ class GameBackground(BaseBackground):
         super().__init__(screen)
         # Game elements (the user won't control these)
         self.ball = Ball(screen, True)
-        self.targets = Targets(screen, True)
+        self.targets = sprite.Group()
+        target.recharge(screen, self.targets, True)
 
         self.ball.rect.center = self.screen_rect.center
-        self.targets.recharge()
 
     def draw(self):
         self.ball.draw()
-        self.targets.draw()
+        self.targets.draw(self.screen)
 
     def update(self):
         self.ball.update(None)

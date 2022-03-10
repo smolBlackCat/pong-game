@@ -3,14 +3,15 @@ import random
 import pygame.constants as constants
 import pygame.draw as draw
 import pygame.rect as rect
+import pygame.sprite as sprite
 import pygame.surface as surface
 import pygame.time as time
 
 from . import effects, interface, utils
+from .background import ColourChangingBackground, GameBackground
+from .game_elements import target
 from .game_elements.ball import Ball
 from .game_elements.paddle import Paddle
-from .game_elements.targets import Targets
-from .background import ColourChangingBackground, GameBackground
 
 # TODO: Create a settings view
 
@@ -218,7 +219,8 @@ class GameScene(Scene):
         # Game elements
         self.ball = Ball(screen)
         self.paddle = Paddle(screen)
-        self.targets = Targets(screen)
+        self.targets = sprite.Group()
+        target.recharge(screen, self.targets)
 
         # Interface elements
         self.background = ColourChangingBackground(screen)
@@ -290,7 +292,7 @@ class GameScene(Scene):
         else:
             # Game is on
             self.background.draw()
-            self.targets.draw()
+            self.targets.draw(self.screen)
             self.ball.draw()
             self.paddle.draw()
             self.scoreboard.draw()
@@ -371,7 +373,7 @@ class GameScene(Scene):
     def restart(self):
         """It restarts the game to its initial state."""
 
-        self.targets.recharge()
+        target.recharge(self.screen, self.targets)
         self.setup_game_elements()
         self.countdown_tick = 0
         self.on_countdown = True
