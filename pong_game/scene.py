@@ -35,6 +35,18 @@ class Scene:
         # scene manager instance.
         self.scene_manager = None
 
+        self.particles_groups = []
+
+    def draw_particles(self):
+        for particles_group in self.particles_groups:
+            particles_group.draw(self.screen)
+
+    def update_particles(self):
+        for particles_group in self.particles_groups:
+            if len(particles_group) == 0:
+                self.particles_groups.remove(particles_group)
+            particles_group.update()
+
     def draw(self):
         """It draws the components of this scene in the screen."""
 
@@ -181,13 +193,15 @@ class MainMenuScene(Scene):
     def draw(self):
         self.screen.fill((0, 0, 80))
         self.background.draw()
+        self.draw_particles()
         self.game_title.draw()
         self.play_button.draw()
         self.settings_button.draw()
         self.quit_button.draw()
 
     def update(self):
-        self.background.update()
+        self.background.update(self.particles_groups)
+        self.update_particles()
         self.game_title.update()
         self.play_button.update()
         self.settings_button.update()
@@ -294,6 +308,7 @@ class GameScene(Scene):
             self.background.draw()
             self.targets.draw(self.screen)
             self.ball.draw()
+            self.draw_particles()
             self.paddle.draw()
             self.scoreboard.draw()
             if self.paused:
@@ -313,9 +328,10 @@ class GameScene(Scene):
                     self.on_countdown = False
                     self.game_over_soundfx.play()
             self.background.update()
-            self.ball.update(self.paddle)
+            self.ball.update(self.paddle, self.particles_groups)
+            self.update_particles()
             self.paddle.update()
-            self.targets.update(self.ball)
+            self.targets.update(self.ball, self.particles_groups)
             self.scoreboard.update_text(f"Score: {self.ball.points}")
             self.scoreboard.rect.bottomleft = self.screen_rect.bottomleft
 

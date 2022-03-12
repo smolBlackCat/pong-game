@@ -47,9 +47,9 @@ class GameBackground(BaseBackground):
         self.ball.draw()
         self.targets.draw(self.screen)
 
-    def update(self):
-        self.ball.update(None)
-        self.targets.update(self.ball)
+    def update(self, particles_group):
+        self.ball.update(None, particles_group)
+        self.targets.update(self.ball, particles_group)
 
 
 class ColourChangingBackground(BaseBackground):
