@@ -1,5 +1,7 @@
 import pygame.sprite as sprite
+
 from .. import utils
+from .particle import Particle
 
 
 class Ball(sprite.Sprite):
@@ -41,23 +43,28 @@ class Ball(sprite.Sprite):
         self.get_collision = None
 
         if free:
-            def movement_logic(paddle):
+            def movement_logic(paddle, particles_group):
                 if self.rect.left <= self.screen_rect.left \
                         or self.rect.right >= self.screen_rect.right:
                     self.xspeed *= -1
+                    particles_group.append(Particle.create_particles(self.screen, self.rect.x, self.rect.y))
                 if self.rect.top <= self.screen_rect.top \
                         or self.rect.bottom >= self.screen_rect.bottom:
                     self.yspeed *= -1
+                    particles_group.append(Particle.create_particles(self.screen, self.rect.x, self.rect.y))
 
             self.get_collision = movement_logic
         else:
-            def movement_logic(paddle):
+            def movement_logic(paddle, particles_group):
                 if self.rect.left <= self.screen_rect.left or self.rect.right >= self.screen_rect.right:
                     self.hit_soundfx.play()
                     self.xspeed *= -1
+                    particles_group.append(Particle.create_particles(self.screen, self.rect.x, self.rect.y))
+
                 if self.rect.top <= self.screen_rect.top:
                     self.hit_soundfx.play()
                     self.yspeed *= -1
+                    particles_group.append(Particle.create_particles(self.screen, self.rect.x, self.rect.y))
 
                 if self.rect.colliderect(paddle.rect) and self.yspeed > 0:
                     self.hit_soundfx.play()
@@ -85,7 +92,7 @@ class Ball(sprite.Sprite):
 
         self.screen.blit(self.image, self.rect)
 
-    def update(self, paddle):
+    def update(self, paddle, particles_group):
         """It updates the movement of the ball.
 
         Args:
@@ -99,4 +106,4 @@ class Ball(sprite.Sprite):
         self.y += self.yspeed
 
         # Movement logic
-        self.get_collision(paddle)
+        self.get_collision(paddle, particles_group)

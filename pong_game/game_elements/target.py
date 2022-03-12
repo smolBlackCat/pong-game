@@ -2,6 +2,7 @@ import random
 
 import pygame.sprite as sprite
 import pygame.surface as surface
+from .particle import Particle
 
 from .. import utils
 
@@ -46,7 +47,7 @@ class Target(sprite.Sprite):
         # Replaced with True when this target get hit
         self.falling = False
 
-    def collision_handling(self, ball):
+    def collision_handling(self, ball, particles_group):
         if ball.rect.colliderect(self.rect) and not self.falling:
             if abs(ball.rect.top - self.rect.bottom) < 10 \
                     and ball.yspeed < 0:
@@ -61,6 +62,8 @@ class Target(sprite.Sprite):
             if not self.disable_soundfx:
                 self.target_hit_soundfx.play()
             
+            particles_group.append(Particle.create_particles(self.screen, self.rect.x, self.rect.y))
+            
             ball.points += 100
             self.falling = True
             return True
@@ -71,7 +74,7 @@ class Target(sprite.Sprite):
 
         self.screen.blit(self.image, self.rect)
 
-    def update(self, ball):
+    def update(self, ball, particles_group):
         """It updates the current state of the target."""
 
         if self.rect.top > self.screen_rect.bottom:
@@ -83,7 +86,7 @@ class Target(sprite.Sprite):
             # Simulates falling effect
             self.rect.y += 1
 
-        self.collision_handling(ball)
+        self.collision_handling(ball, particles_group)
 
 
 def update(screen, screen_rect, targets, ball, disable_soundfx):
