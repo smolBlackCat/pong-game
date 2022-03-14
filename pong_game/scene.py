@@ -328,7 +328,7 @@ class GameScene(Scene):
                     self.on_countdown = False
                     self.game_over_soundfx.play()
             self.background.update()
-            self.ball.update(self.paddle, self.particles_groups)
+            self.ball.update(self.particles_groups, self.paddle)
             self.update_particles()
             self.paddle.update()
             self.targets.update(self.ball, self.particles_groups)

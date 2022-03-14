@@ -9,7 +9,7 @@ class Ball(sprite.Sprite):
     game or anything else, like a demonstration.
     """
 
-    def __init__(self, screen, free=False):
+    def __init__(self, screen, on_game=True):
         """Initialises the Ball object.
 
         Args:
@@ -18,16 +18,17 @@ class Ball(sprite.Sprite):
                 A Surface object representing the whole window
                 background.
 
-            free:
-                A boolean value that indicates if the ball is in
-                game mode, that is it's working like it's in the
-                game. When False, it means that the ball is on a
-                match.
+            on_game:
+                A boolean value that indicates if this ball is in
+                actual game.
         """
+
         sprite.Sprite.__init__(self)
 
         self.screen = screen
         self.screen_rect = screen.get_rect()
+
+        self.on_game = on_game
 
         self.image = utils.load_image("on_game/ball.png")
         self.hit_soundfx = utils.load_soundfx("on_game/soundfx/ball_hit.ogg")
@@ -37,39 +38,6 @@ class Ball(sprite.Sprite):
         self.yspeed = 2
 
         self.points = 0
-
-        # It stores a function. Its behaviour may change depeding on
-        # the free arg.
-        self.get_collision = None
-
-        if free:
-            def movement_logic(paddle, particles_group):
-                if self.rect.left <= self.screen_rect.left \
-                        or self.rect.right >= self.screen_rect.right:
-                    self.xspeed *= -1
-                    particles_group.append(Particle.create_particles(self.screen, self.rect.x, self.rect.y))
-                if self.rect.top <= self.screen_rect.top \
-                        or self.rect.bottom >= self.screen_rect.bottom:
-                    self.yspeed *= -1
-                    particles_group.append(Particle.create_particles(self.screen, self.rect.x, self.rect.y))
-
-            self.get_collision = movement_logic
-        else:
-            def movement_logic(paddle, particles_group):
-                if self.rect.left <= self.screen_rect.left or self.rect.right >= self.screen_rect.right:
-                    self.hit_soundfx.play()
-                    self.xspeed *= -1
-                    particles_group.append(Particle.create_particles(self.screen, self.rect.x, self.rect.y))
-
-                if self.rect.top <= self.screen_rect.top:
-                    self.hit_soundfx.play()
-                    self.yspeed *= -1
-                    particles_group.append(Particle.create_particles(self.screen, self.rect.x, self.rect.y))
-
-                if self.rect.colliderect(paddle.rect) and self.yspeed > 0:
-                    self.hit_soundfx.play()
-                    self.yspeed *= -1
-            self.get_collision = movement_logic
 
     @property
     def x(self):
@@ -92,18 +60,67 @@ class Ball(sprite.Sprite):
 
         self.screen.blit(self.image, self.rect)
 
-    def update(self, paddle, particles_group):
+    def check_wall_collision(self, particles_group):
+        """Checks for wall collisions.
+        
+        Args:
+        
+            particles_group:
+                A list object containing groups of particles to be
+                drawn onto screen.
+        """
+
+        if self.rect.left <= self.screen_rect.left \
+                or self.rect.right >= self.screen_rect.right:
+
+            if self.on_game:
+                self.hit_soundfx.play()
+
+            self.xspeed *= -1
+            particles_group.append(Particle.create_particles(
+                self.screen, self.rect.x, self.rect.y))
+        elif self.rect.top <= self.screen_rect.top \
+                or (self.rect.bottom >= self.screen_rect.bottom
+                    and not self.on_game):
+
+            if self.on_game:
+                self.hit_soundfx.play()
+
+            self.yspeed *= -1
+            particles_group.append(Particle.create_particles(
+                self.screen, self.rect.x, self.rect.y))
+
+    def check_paddle_collision(self, paddle):
+        """Checks a paddle collision.
+        
+        Args:
+            
+            paddle:
+                A Paddle object that is the player.
+        """
+
+        if self.rect.colliderect(paddle.rect) and self.yspeed > 0:
+            self.hit_soundfx.play()
+            self.yspeed *= -1
+
+    def update(self, particles_group, paddle=None):
         """It updates the movement of the ball.
 
         Args:
 
+            particles_group:
+                A list object with groups of particles.
+
             paddle:
-                A paddle (player) object where the rect attribute
-                will be extracted.
+                A Paddle (player) object. Use None when this ball
+                isn't in a game.
         """
 
         self.x += self.xspeed
         self.y += self.yspeed
 
         # Movement logic
-        self.get_collision(paddle, particles_group)
+        self.check_wall_collision(particles_group)
+
+        if paddle is not None:
+            self.check_paddle_collision(paddle)
