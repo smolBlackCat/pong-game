@@ -31,7 +31,7 @@ class Ball(sprite.Sprite):
         self.on_game = on_game
 
         self.image = utils.load_image("on_game/ball.png")
-        self.hit_soundfx = utils.load_soundfx("on_game/soundfx/ball_hit.ogg")
+        self.hit_soundfx = "on_game/soundfx/ball_hit.ogg"
         self.rect = self.image.get_rect()
 
         self.xspeed = 2
@@ -74,7 +74,7 @@ class Ball(sprite.Sprite):
                 or self.rect.right >= self.screen_rect.right:
 
             if self.on_game:
-                self.hit_soundfx.play()
+                utils.play_soundfx(self.hit_soundfx)
 
             self.xspeed *= -1
             particles = Particle.create_particles(self.screen, self.rect.x,
@@ -85,7 +85,7 @@ class Ball(sprite.Sprite):
                     and not self.on_game):
 
             if self.on_game:
-                self.hit_soundfx.play()
+                utils.play_soundfx(self.hit_soundfx)
 
             self.yspeed *= -1
             particles = Particle.create_particles(self.screen, self.rect.x,
@@ -102,7 +102,7 @@ class Ball(sprite.Sprite):
         """
 
         if self.rect.colliderect(paddle.rect) and self.yspeed > 0:
-            self.hit_soundfx.play()
+            utils.play_soundfx(self.hit_soundfx)
             self.yspeed *= -1
 
     def update(self, particles_group, paddle=None):

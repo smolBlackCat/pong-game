@@ -39,10 +39,8 @@ class Target(sprite.Sprite):
         self.image.fill([random.randint(0, 255) for i in range(3)])
         self.image.blit(utils.load_image("on_game/target.png"), self.rect)
 
-        self.vanish_soundfx = utils.load_soundfx(
-            "on_game/soundfx/vanishing.wav")
-        self.target_hit_soundfx = utils.load_soundfx(
-            "on_game/soundfx/target_hit.wav")
+        self.vanish_soundfx = "on_game/soundfx/vanishing.wav"
+        self.target_hit_soundfx = "on_game/soundfx/target_hit.wav"
 
         # Replaced with True when this target get hit
         self.falling = False
@@ -60,7 +58,7 @@ class Target(sprite.Sprite):
             elif abs(ball.rect.right - self.rect.left) < 10:
                 ball.xspeed *= -1
             if self.on_game:
-                self.target_hit_soundfx.play()
+                utils.play_soundfx(self.target_hit_soundfx)
 
             particles = Particle.create_particles(self.screen, self.rect.x,
                                                   self.rect.y)
@@ -74,8 +72,8 @@ class Target(sprite.Sprite):
         if self.rect.top > self.screen_rect.bottom:
             # Simply disappears. Stop rendering the hit target.
             self.kill()
-            if not self.on_game:
-                self.vanish_soundfx.play()
+            if self.on_game:
+                utils.play_soundfx(self.vanish_soundfx)
         elif self.falling:
             # Simulates falling effect
             self.rect.y += 1

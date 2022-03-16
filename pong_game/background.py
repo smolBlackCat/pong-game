@@ -41,7 +41,7 @@ class GameBackground(BaseBackground):
         self.ball = Ball(screen, False)
         self.ball.yspeed = 5
         self.targets = sprite.Group()
-        target.recharge(screen, self.targets, True)
+        target.recharge(screen, self.targets, False)
 
         self.ball.rect.center = self.screen_rect.center
 
