@@ -36,8 +36,10 @@ class GameBackground(BaseBackground):
 
     def __init__(self, screen):
         super().__init__(screen)
+
         # Game elements (the user won't control these)
         self.ball = Ball(screen, False)
+        self.ball.yspeed = 5
         self.targets = sprite.Group()
         target.recharge(screen, self.targets, True)
 
@@ -50,6 +52,8 @@ class GameBackground(BaseBackground):
     def update(self, particles_group):
         self.ball.update(particles_group, None)
         self.targets.update(self.ball, particles_group)
+        target.update(self.screen, self.screen_rect, self.targets, self.ball,
+                      True, particles_group)
 
 
 class ColourChangingBackground(BaseBackground):

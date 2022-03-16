@@ -2,9 +2,9 @@ import random
 
 import pygame.sprite as sprite
 import pygame.surface as surface
-from .particle import Particle
 
 from .. import utils
+from .particle import Particle
 
 
 class Target(sprite.Sprite):
@@ -12,7 +12,7 @@ class Target(sprite.Sprite):
     be hit by the ball.
     """
 
-    def __init__(self, screen, disable_soundfx=False):
+    def __init__(self, screen, on_game=True):
         """Initialises the Target object. This object isn't used
         directly by the game but by the Targets class instead.
 
@@ -22,9 +22,9 @@ class Target(sprite.Sprite):
                 A Surface object representing the window
                 background.
 
-            disable_soundfx:
-                When True, the target doesn't make any sound when
-                hit.
+            on_game:
+                A boolean value that indicates if the target is on a
+                match.
         """
 
         sprite.Sprite.__init__(self)
@@ -32,7 +32,7 @@ class Target(sprite.Sprite):
         self.screen = screen
         self.screen_rect = screen.get_rect()
 
-        self.disable_soundfx = disable_soundfx
+        self.on_game = on_game
 
         self.image = surface.Surface((32, 32))
         self.rect = self.image.get_rect()
@@ -47,7 +47,7 @@ class Target(sprite.Sprite):
         # Replaced with True when this target get hit
         self.falling = False
 
-    def collision_handling(self, ball, particles_group):
+    def collision(self, ball, particles_group):
         if ball.rect.colliderect(self.rect) and not self.falling:
             if abs(ball.rect.top - self.rect.bottom) < 10 \
                     and ball.yspeed < 0:
@@ -59,20 +59,14 @@ class Target(sprite.Sprite):
                 ball.xspeed *= -1
             elif abs(ball.rect.right - self.rect.left) < 10:
                 ball.xspeed *= -1
-            if not self.disable_soundfx:
+            if self.on_game:
                 self.target_hit_soundfx.play()
-            
-            particles_group.append(Particle.create_particles(self.screen, self.rect.x, self.rect.y))
-            
-            ball.points += 100
-            self.falling = True
+
+            particles = Particle.create_particles(self.screen, self.rect.x,
+                                                  self.rect.y)
+            particles_group.append(particles)
             return True
         return False
-
-    def draw(self):
-        """It draws the target on the screen."""
-
-        self.screen.blit(self.image, self.rect)
 
     def update(self, ball, particles_group):
         """It updates the current state of the target."""
@@ -80,34 +74,52 @@ class Target(sprite.Sprite):
         if self.rect.top > self.screen_rect.bottom:
             # Simply disappears. Stop rendering the hit target.
             self.kill()
-            if not self.disable_soundfx:
+            if not self.on_game:
                 self.vanish_soundfx.play()
         elif self.falling:
             # Simulates falling effect
             self.rect.y += 1
 
-        self.collision_handling(ball, particles_group)
+        if self.collision(ball, particles_group):
+            ball.points += 100
+            self.falling = True
 
 
-def update(screen, screen_rect, targets, ball, disable_soundfx):
+def update(screen, screen_rect, targets, ball, on_game, particles_group):
     """It updates the state of every single target in the
     group.
 
     Args:
 
+        screen:
+            A Surface object representing the game window.
+        
+        screen_rect:
+            A Rect object obtained from the screen's surface.
+        
+        targets:
+            A Group object filled with Target(s).
+        
         ball:
-            A Ball object.
+            A Ball object. The actual player.
+        
+        on_game:
+            Boolean value that indicates if the targets to be created
+            are going to be in a match.
+        
+        particles_group:
+            A list object containing Group(s) of Particle(s).
     """
 
     if len(targets) == 0 and ball.y >= screen_rect.centery:
         # Recharge the targets when empty or the player failed in
         # catching the ball.
-        recharge(screen, targets, disable_soundfx)
+        recharge(screen, targets, on_game)
 
-    targets.update(ball)
+    targets.update(ball, particles_group)
 
 
-def recharge(screen, targets, disable_soundfx=False):
+def recharge(screen, targets, on_game=True):
     """It refills the group attribute with targets sprites."""
 
     # Making sure that the group is in fact empty.
@@ -120,7 +132,7 @@ def recharge(screen, targets, disable_soundfx=False):
 
     for y in range(5):
         for x in range(rows):
-            target = Target(screen, disable_soundfx)
+            target = Target(screen, on_game)
             target.rect.x = xpos
             target.rect.y = ypos
             targets.add(target)

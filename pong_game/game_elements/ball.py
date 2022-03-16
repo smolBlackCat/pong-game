@@ -62,9 +62,9 @@ class Ball(sprite.Sprite):
 
     def check_wall_collision(self, particles_group):
         """Checks for wall collisions.
-        
+
         Args:
-        
+
             particles_group:
                 A list object containing groups of particles to be
                 drawn onto screen.
@@ -77,8 +77,9 @@ class Ball(sprite.Sprite):
                 self.hit_soundfx.play()
 
             self.xspeed *= -1
-            particles_group.append(Particle.create_particles(
-                self.screen, self.rect.x, self.rect.y))
+            particles = Particle.create_particles(self.screen, self.rect.x,
+                                                  self.rect.y)
+            particles_group.append(particles)
         elif self.rect.top <= self.screen_rect.top \
                 or (self.rect.bottom >= self.screen_rect.bottom
                     and not self.on_game):
@@ -87,14 +88,15 @@ class Ball(sprite.Sprite):
                 self.hit_soundfx.play()
 
             self.yspeed *= -1
-            particles_group.append(Particle.create_particles(
-                self.screen, self.rect.x, self.rect.y))
+            particles = Particle.create_particles(self.screen, self.rect.x,
+                                                  self.rect.y)
+            particles_group.append(particles)
 
     def check_paddle_collision(self, paddle):
         """Checks a paddle collision.
-        
+
         Args:
-            
+
             paddle:
                 A Paddle object that is the player.
         """
