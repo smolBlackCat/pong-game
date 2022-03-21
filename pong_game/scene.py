@@ -13,8 +13,6 @@ from .game_elements import target
 from .game_elements.ball import Ball
 from .game_elements.paddle import Paddle
 
-# TODO: Create a settings view
-
 
 class Scene:
     """A base object for the creation of scenes in a screen."""
@@ -148,7 +146,7 @@ class MainMenuScene(Scene):
 
         def play_button_action():
             fadefx = effects.FadeTransition(
-                self.screen, self.scene_manager, "on_game", (255, 255, 0))
+                self.screen, self.scene_manager, "on_game", (255, 255, 255))
             self.scene_manager.change_view(
                 "on_game", fadefx)
 
@@ -162,7 +160,9 @@ class MainMenuScene(Scene):
             play_button_action)
 
         def settings_button_action():
-            pass
+            fadefx = effects.FadeTransition(
+                self.screen, self.scene_manager, "on_settings", (255, 255, 255))
+            self.scene_manager.change_view("on_settings", fadefx)
 
         self.settings_button = interface.Button(
             screen, utils.load_image("main_menu/settings_button_on.png"),
@@ -211,6 +211,109 @@ class MainMenuScene(Scene):
         self.play_button.update_on_event(event)
         self.settings_button.update_on_event(event)
         self.quit_button.update_on_event(event)
+
+
+# TODO: Create settings scene. The projected interface file is settings_view.png
+class SettingsScene(Scene):
+    """Scene that displays the game setup."""
+
+    def __init__(self, screen):
+        super().__init__(screen)
+
+        # Difficulty setting section
+        self.difficulty_setting_label = interface.Label.from_text(
+            screen, "DIFFICULTY", (170, 0, 0), 24, 10, 0, True,
+            antialised=True
+        )
+        self.easy_button = interface.Button(
+            screen, utils.load_image("on_settings/easy_button_on.png"),
+            utils.load_image("on_settings/easy_button_off.png"),
+            utils.load_image("on_settings/easy_button_clicked.png"))
+        self.normal_button = interface.Button(
+            screen, utils.load_image("on_settings/normal_button_on.png"),
+            utils.load_image("on_settings/normal_button_off.png"),
+            utils.load_image("on_settings/normal_button_clicked.png"))
+        self.hard_button = interface.Button(
+            screen, utils.load_image("on_settings/hard_button_on.png"),
+            utils.load_image("on_settings/hard_button_off.png"),
+            utils.load_image("on_settings/hard_button_clicked.png"))
+
+        # Buttons setup
+        for button in [self.easy_button, self.normal_button, self.hard_button]:
+            button.rect.midtop = self.screen_rect.midtop
+            button.rect.y += 20
+        self.easy_button.rect.x -= 85
+        self.hard_button.rect.x += 85
+
+        # Back button
+        def back_button_action():
+            fadefx = effects.FadeTransition(
+                self.screen, self.scene_manager, "main_menu", (255, 255, 255),
+                4)
+            self.scene_manager.change_view("main_menu", fadefx)
+
+        self.back_button = interface.Button(
+            screen, utils.load_image("on_settings/back_button_on.png"),
+            utils.load_image("on_settings/back_button_off.png"),
+            utils.load_image("on_settings/back_button_clicked.png"),
+            back_button_action
+        )
+
+        self.back_button.rect.bottomright = self.screen_rect.bottomright
+        self.back_button.rect.x -= 15
+        self.back_button.rect.y -= 15
+
+        # Info section
+        self.info_title_label = interface.Label.from_text(
+            screen, "INFO:", (0, 0, 0), 28, 5, 0, True,
+            antialised=True
+        )
+        info_string = "This project is not official. I made this just to " \
+            + "practise my programming skills. One more thing that I have to " \
+            +"improve in my projects are:"
+        self.info_label = interface.Label.from_text(
+            screen, info_string, (0, 0, 0), 26, 50, 1,
+            antialised=True)
+        to_be_improved_string = "° Design\n° Code efficiency" \
+            +"\n° Avoid lazy code."
+        self.to_be_improved_label = interface.Label.from_text(
+            screen, to_be_improved_string, (0, 0, 0), 24, 25, 2,
+            antialised=True)
+
+        self.info_title_label.rect.midleft = self.screen_rect.midleft
+        self.info_title_label.rect.x += 10
+        self.info_label.rect.midleft = self.screen_rect.midleft
+        self.info_label.rect.y += 50
+        self.info_label.rect.x += 30
+        self.to_be_improved_label.rect.topleft = self.info_label.rect.bottomleft
+        self.to_be_improved_label.rect.y += 10
+        self.to_be_improved_label.rect.x += 30
+    
+    def draw(self):
+        self.screen.fill((255, 255, 255))
+        self.easy_button.draw()
+        self.normal_button.draw()
+        self.hard_button.draw()
+
+        self.info_title_label.draw()
+        self.info_label.draw()
+
+        self.to_be_improved_label.draw()
+
+        self.back_button.draw()
+    
+    def update(self):
+        self.easy_button.update()
+        self.normal_button.update()
+        self.hard_button.update()
+
+        self.back_button.update()
+    
+    def update_on_event(self, event):
+        self.easy_button.update_on_event(event)
+        self.normal_button.update_on_event(event)
+        self.hard_button.update_on_event(event)
+        self.back_button.update_on_event(event)
 
 
 class GameScene(Scene):
