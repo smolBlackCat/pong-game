@@ -1,5 +1,3 @@
-#! /usr/local/bin/python3
-
 """Pong game made by de Moura."""
 
 from pong_game import game

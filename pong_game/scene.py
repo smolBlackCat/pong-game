@@ -270,12 +270,12 @@ class SettingsScene(Scene):
         )
         info_string = "This project is not official. I made this just to " \
             + "practise my programming skills. One more thing that I have to " \
-            +"improve in my projects are:"
+            + "improve in my projects are:"
         self.info_label = interface.Label.from_text(
             screen, info_string, (0, 0, 0), 26, 50, 1,
             antialised=True)
         to_be_improved_string = "° Design\n° Code efficiency" \
-            +"\n° Avoid lazy code."
+            + "\n° Avoid lazy code."
         self.to_be_improved_label = interface.Label.from_text(
             screen, to_be_improved_string, (0, 0, 0), 24, 25, 2,
             antialised=True)
@@ -288,7 +288,7 @@ class SettingsScene(Scene):
         self.to_be_improved_label.rect.topleft = self.info_label.rect.bottomleft
         self.to_be_improved_label.rect.y += 10
         self.to_be_improved_label.rect.x += 30
-    
+
     def draw(self):
         self.screen.fill((255, 255, 255))
         self.easy_button.draw()
@@ -301,14 +301,14 @@ class SettingsScene(Scene):
         self.to_be_improved_label.draw()
 
         self.back_button.draw()
-    
+
     def update(self):
         self.easy_button.update()
         self.normal_button.update()
         self.hard_button.update()
 
         self.back_button.update()
-    
+
     def update_on_event(self, event):
         self.easy_button.update_on_event(event)
         self.normal_button.update_on_event(event)
@@ -367,6 +367,20 @@ class GameScene(Scene):
         self.paused_label = interface.Label.from_text(
             screen, "PAUSED", (100, 0, 0), 36, 6, 0, True, antialised=True)
 
+        def back_button_action():
+            fadefx = effects.FadeTransition(screen, self.scene_manager,
+                                            "main_menu", (255, 255, 255), 4)
+            self.scene_manager.change_view("main_menu", fadefx)
+
+            self.paused = False
+            self.ball.points = 0
+
+        self.back_button = interface.Button(
+            screen,utils.load_image("on_game/back_button_on.png"),
+            utils.load_image("on_game/back_button_off.png"),
+            utils.load_image("on_game/back_button_clicked.png"),
+            back_button_action)
+
         # Sound effects
         self.game_over_soundfx = utils.load_soundfx(
             "on_game/soundfx/game_over.wav")
@@ -384,6 +398,8 @@ class GameScene(Scene):
 
     def setup_interface_elements(self):
         self.paused_label.rect.center = self.screen_rect.center
+        self.back_button.rect.midtop = self.paused_label.rect.midbottom
+        self.back_button.rect.y += 20
 
         self.game_over_label.rect.center = self.screen_rect.center
         self.game_over_label.rect.y -= 20
@@ -416,6 +432,7 @@ class GameScene(Scene):
             self.scoreboard.draw()
             if self.paused:
                 self.paused_label.draw()
+                self.back_button.draw()
             elif self.on_countdown:
                 self.countdown_number.draw()
 
@@ -437,6 +454,8 @@ class GameScene(Scene):
             self.targets.update(self.ball, self.particles_groups)
             self.scoreboard.update_text(f"Score: {self.ball.points}")
             self.scoreboard.rect.bottomleft = self.screen_rect.bottomleft
+        else:
+            self.back_button.update()
 
         if self.game_over:
             self.retry_button.update()
@@ -488,6 +507,8 @@ class GameScene(Scene):
         if self.game_over:
             self.retry_button.update_on_event(event)
             self.main_menu_button.update_on_event(event)
+        elif self.paused:
+            self.back_button.update_on_event(event)
 
     def restart(self):
         """It restarts the game to its initial state."""
