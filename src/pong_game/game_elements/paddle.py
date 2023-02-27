@@ -1,6 +1,8 @@
 import pygame.sprite as sprite
 
-from ..utils import load_image
+from core.utils import load_image
+
+from .. import assets_path
 
 
 class Paddle(sprite.Sprite):
@@ -23,7 +25,7 @@ class Paddle(sprite.Sprite):
         self.screen = screen
         self.screen_rect = screen.get_rect()
 
-        self.image = load_image("on_game/paddle.png")
+        self.image = load_image(f"{assets_path}/on_game/paddle.png")
         self.rect = self.image.get_rect()
 
         self.moving_right = False

@@ -6,3 +6,8 @@ __pycache__/
 
 # Ignore IDE settings
 .vscode/
+
+# Ignore build files
+*.spec
+build/
+dist/

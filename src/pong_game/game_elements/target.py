@@ -3,8 +3,10 @@ import random
 import pygame.sprite as sprite
 import pygame.surface as surface
 
-from .. import utils
-from .particle import Particle
+from core import utils
+from core.effects import Particle
+
+from .. import assets_path
 
 
 class Target(sprite.Sprite):
@@ -37,10 +39,12 @@ class Target(sprite.Sprite):
         self.image = surface.Surface((32, 32))
         self.rect = self.image.get_rect()
         self.image.fill([random.randint(0, 255) for i in range(3)])
-        self.image.blit(utils.load_image("on_game/target.png"), self.rect)
+        self.image.blit(utils.load_image(f"{assets_path}/on_game/target.png"), self.rect)
 
-        self.vanish_soundfx = "on_game/soundfx/vanishing.wav"
-        self.target_hit_soundfx = "on_game/soundfx/target_hit.wav"
+        self.vanish_soundfx = utils.load_soundfx(
+            f"{assets_path}/on_game/soundfx/vanishing.wav", 0.2)
+        self.target_hit_soundfx = utils.load_soundfx(
+            f"{assets_path}/on_game/soundfx/target_hit.wav", 0.2)
 
         # Replaced with True when this target get hit
         self.falling = False
@@ -58,10 +62,12 @@ class Target(sprite.Sprite):
             elif abs(ball.rect.right - self.rect.left) < 10:
                 ball.xspeed *= -1
             if self.on_game:
-                utils.play_soundfx(self.target_hit_soundfx)
+                self.target_hit_soundfx.play()
 
-            particles = Particle.create_particles(self.screen, self.rect.x,
-                                                  self.rect.y)
+            particles = Particle.create_particles(
+                self.screen,
+                utils.load_image(f"{assets_path}/on_game/particle.png"),
+                self.rect.x, self.rect.y)
             particles_group.append(particles)
             return True
         return False
@@ -73,7 +79,7 @@ class Target(sprite.Sprite):
             # Simply disappears. Stop rendering the hit target.
             self.kill()
             if self.on_game:
-                utils.play_soundfx(self.vanish_soundfx)
+                self.vanish_soundfx.play()
         elif self.falling:
             # Simulates falling effect
             self.rect.y += 1
@@ -123,7 +129,7 @@ def recharge(screen, targets, on_game=True):
     # Making sure that the group is in fact empty.
     targets.empty()
 
-    rows = 600 // 32 + 1
+    rows = screen.get_width() // 32 + 1
 
     xpos = 0
     ypos = 0

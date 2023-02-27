@@ -1,5 +1,3 @@
-import random
-
 import pygame.constants as constants
 import pygame.draw as draw
 import pygame.rect as rect
@@ -7,66 +5,14 @@ import pygame.sprite as sprite
 import pygame.surface as surface
 import pygame.time as time
 
-from . import effects, interface, utils
+from core import effects, interface, transition, utils
+from core.scene import Scene
+
+from . import assets_path
 from .background import ColourChangingBackground, GameBackground
 from .game_elements import target
 from .game_elements.ball import Ball
 from .game_elements.paddle import Paddle
-
-
-class Scene:
-    """A base object for the creation of scenes in a screen."""
-
-    def __init__(self, screen):
-        """Initialises the Scene object.
-
-        Args:
-
-            screen:
-                The Surface object where this scene will be drawn.
-        """
-
-        self.screen = screen
-        self.screen_rect = screen.get_rect()
-
-        # This variable is only filled when this scene is added to a
-        # scene manager instance.
-        self.scene_manager = None
-
-        self.particles_groups = []
-
-    def draw_particles(self):
-        for particles_group in self.particles_groups:
-            particles_group.draw(self.screen)
-
-    def update_particles(self):
-        for particles_group in self.particles_groups:
-            if len(particles_group) == 0:
-                self.particles_groups.remove(particles_group)
-            particles_group.update()
-
-    def draw(self):
-        """It draws the components of this scene in the screen."""
-
-        pass
-
-    def update(self):
-        """It updates the components everytime in the loop."""
-
-        pass
-
-    def update_on_event(self, event):
-        """It updates the components if a event occur.
-
-        Args:
-
-            event:
-                This is an object passed by the iteration, that is
-                responsible for iterating all events
-                (pygame.event.get()).
-        """
-
-        pass
 
 
 class DebugScene(Scene):
@@ -105,9 +51,9 @@ class IntroScene(Scene):
         super().__init__(screen)
 
         self.logo_icon = interface.Label(
-            screen, utils.load_image("game_intro/moura_cat.png"))
+            screen, utils.load_image(f"{assets_path}/game_intro/moura_cat.png"))
         self.logo_title = interface.Label(
-            screen, utils.load_image("game_intro/logo_title.png"))
+            screen, utils.load_image(f"{assets_path}/game_intro/logo_title.png"))
 
         self.logo_icon.rect.centerx = self.screen_rect.centerx
         self.logo_icon.rect.centery = self.screen_rect.centery
@@ -125,9 +71,9 @@ class IntroScene(Scene):
     def update_on_event(self, event):
         if event.type == IntroScene.END_INTRO:
             print("changing view")
-            self.scene_manager.change_view(
+            self.scene_manager.change_scene(
                 "main_menu",
-                effects.FadeTransition(
+                transition.FadeTransition(
                     self.screen, self.scene_manager, "main_menu",
                     (0, 0, 0), 4))
 
@@ -141,38 +87,45 @@ class MainMenuScene(Scene):
         self.background = GameBackground(screen)
 
         self.game_title = interface.Label(
-            screen, utils.load_image("main_menu/game_title.png"),
+            screen, utils.load_image(
+                f"{assets_path}/main_menu/game_title.png"),
             effects.floating_animation, 120, self.screen_rect.top)
 
         def play_button_action():
-            fadefx = effects.FadeTransition(
+            fadefx = transition.FadeTransition(
                 self.screen, self.scene_manager, "on_game", (255, 255, 255))
-            self.scene_manager.change_view(
+            self.scene_manager.change_scene(
                 "on_game", fadefx)
 
             # Always get brand new game
             self.scene_manager.views["on_game"].retry()
 
         self.play_button = interface.Button(
-            screen, utils.load_image("main_menu/play_button_on.png"),
-            utils.load_image("main_menu/play_button_off.png"),
-            utils.load_image("main_menu/play_button_clicked.png"),
+            screen, utils.load_image(
+                f"{assets_path}/main_menu/play_button_on.png"),
+            utils.load_image(f"{assets_path}/main_menu/play_button_off.png"),
+            utils.load_image(
+                f"{assets_path}/main_menu/play_button_clicked.png"),
             play_button_action)
 
         def settings_button_action():
-            fadefx = effects.FadeTransition(
+            fadefx = transition.FadeTransition(
                 self.screen, self.scene_manager, "on_settings", (255, 255, 255))
-            self.scene_manager.change_view("on_settings", fadefx)
+            self.scene_manager.change_scene("on_settings", fadefx)
 
         self.settings_button = interface.Button(
-            screen, utils.load_image("main_menu/settings_button_on.png"),
-            utils.load_image("main_menu/settings_button_off.png"),
-            utils.load_image("main_menu/settings_button_clicked.png"),
+            screen, utils.load_image(
+                f"{assets_path}/main_menu/settings_button_on.png"),
+            utils.load_image(
+                f"{assets_path}/main_menu/settings_button_off.png"),
+            utils.load_image(
+                f"{assets_path}/main_menu/settings_button_clicked.png"),
             settings_button_action)
         self.quit_button = interface.Button(
-            screen, utils.load_image("main_menu/quit_button_on.png"),
-            utils.load_image("main_menu/quit_button_off.png"),
-            utils.load_image("main_menu/quit_button_clicked.png"))
+            screen, utils.load_image(
+                f"{assets_path}/main_menu/quit_button_on.png"),
+            utils.load_image(f"{assets_path}/main_menu/quit_button_off.png"),
+            utils.load_image(f"{assets_path}/main_menu/quit_button_clicked.png"))
 
         padding = 10
 
@@ -226,17 +179,21 @@ class SettingsScene(Scene):
             antialised=True
         )
         self.easy_button = interface.Button(
-            screen, utils.load_image("on_settings/easy_button_on.png"),
-            utils.load_image("on_settings/easy_button_off.png"),
-            utils.load_image("on_settings/easy_button_clicked.png"))
+            screen, utils.load_image(
+                f"{assets_path}/on_settings/easy_button_on.png"),
+            utils.load_image(f"{assets_path}/on_settings/easy_button_off.png"),
+            utils.load_image(f"{assets_path}/on_settings/easy_button_clicked.png"))
         self.normal_button = interface.Button(
-            screen, utils.load_image("on_settings/normal_button_on.png"),
-            utils.load_image("on_settings/normal_button_off.png"),
-            utils.load_image("on_settings/normal_button_clicked.png"))
+            screen, utils.load_image(
+                f"{assets_path}/on_settings/normal_button_on.png"),
+            utils.load_image(
+                f"{assets_path}/on_settings/normal_button_off.png"),
+            utils.load_image(f"{assets_path}/on_settings/normal_button_clicked.png"))
         self.hard_button = interface.Button(
-            screen, utils.load_image("on_settings/hard_button_on.png"),
-            utils.load_image("on_settings/hard_button_off.png"),
-            utils.load_image("on_settings/hard_button_clicked.png"))
+            screen, utils.load_image(
+                f"{assets_path}/on_settings/hard_button_on.png"),
+            utils.load_image(f"{assets_path}/on_settings/hard_button_off.png"),
+            utils.load_image(f"{assets_path}/on_settings/hard_button_clicked.png"))
 
         # Buttons setup
         for button in [self.easy_button, self.normal_button, self.hard_button]:
@@ -247,15 +204,17 @@ class SettingsScene(Scene):
 
         # Back button
         def back_button_action():
-            fadefx = effects.FadeTransition(
+            fadefx = transition.FadeTransition(
                 self.screen, self.scene_manager, "main_menu", (255, 255, 255),
                 4)
-            self.scene_manager.change_view("main_menu", fadefx)
+            self.scene_manager.change_scene("main_menu", fadefx)
 
         self.back_button = interface.Button(
-            screen, utils.load_image("on_settings/back_button_on.png"),
-            utils.load_image("on_settings/back_button_off.png"),
-            utils.load_image("on_settings/back_button_clicked.png"),
+            screen, utils.load_image(
+                f"{assets_path}/on_settings/back_button_on.png"),
+            utils.load_image(f"{assets_path}/on_settings/back_button_off.png"),
+            utils.load_image(
+                f"{assets_path}/on_settings/back_button_clicked.png"),
             back_button_action
         )
 
@@ -350,16 +309,20 @@ class GameScene(Scene):
             screen, "GAME OVER", (255, 255, 255), 20, 10, 0, True,
             antialised=True)
         self.retry_button = interface.Button(
-            screen, utils.load_image("on_game/retry_button_on.png"),
-            utils.load_image("on_game/retry_button_off.png"),
-            utils.load_image("on_game/retry_button_clicked.png"), self.retry)
+            screen, utils.load_image(
+                f"{assets_path}/on_game/retry_button_on.png"),
+            utils.load_image(f"{assets_path}/on_game/retry_button_off.png"),
+            utils.load_image(f"{assets_path}/on_game/retry_button_clicked.png"), self.retry)
         self.main_menu_button = interface.Button(
-            screen, utils.load_image("on_game/main_menu_button_on.png"),
-            utils.load_image("on_game/main_menu_button_off.png"),
-            utils.load_image("on_game/main_menu_button_clicked.png"),
-            lambda: self.scene_manager.change_view(
+            screen, utils.load_image(
+                f"{assets_path}/on_game/main_menu_button_on.png"),
+            utils.load_image(
+                f"{assets_path}/on_game/main_menu_button_off.png"),
+            utils.load_image(
+                f"{assets_path}/on_game/main_menu_button_clicked.png"),
+            lambda: self.scene_manager.change_scene(
                 "main_menu",
-                effects.FadeTransition(
+                transition.FadeTransition(
                     screen, self.scene_manager, "main_menu",
                     (255, 255, 255), 4)
             )
@@ -368,24 +331,25 @@ class GameScene(Scene):
             screen, "PAUSED", (100, 0, 0), 36, 6, 0, True, antialised=True)
 
         def back_button_action():
-            fadefx = effects.FadeTransition(screen, self.scene_manager,
-                                            "main_menu", (255, 255, 255), 4)
-            self.scene_manager.change_view("main_menu", fadefx)
+            fadefx = transition.FadeTransition(screen, self.scene_manager,
+                                               "main_menu", (255, 255, 255), 4)
+            self.scene_manager.change_scene("main_menu", fadefx)
 
             self.paused = False
             self.ball.points = 0
 
         self.back_button = interface.Button(
-            screen,utils.load_image("on_game/back_button_on.png"),
-            utils.load_image("on_game/back_button_off.png"),
-            utils.load_image("on_game/back_button_clicked.png"),
+            screen, utils.load_image(
+                f"{assets_path}/on_game/back_button_on.png"),
+            utils.load_image(f"{assets_path}/on_game/back_button_off.png"),
+            utils.load_image(f"{assets_path}/on_game/back_button_clicked.png"),
             back_button_action)
 
         # Sound effects
         self.game_over_soundfx = utils.load_soundfx(
-            "on_game/soundfx/game_over.wav")
+            f"{assets_path}/on_game/soundfx/game_over.wav", volume=0.2)
         self.countdown_beep_soundfx = utils.load_soundfx(
-            "on_game/soundfx/countdown_beep.wav")
+            f"{assets_path}/on_game/soundfx/countdown_beep.wav", volume=0.2)
 
         self.setup_game_elements()
         self.setup_interface_elements()
@@ -526,94 +490,3 @@ class GameScene(Scene):
         self.countdown_tick = 0
         self.on_countdown = True
         self.game_over = False
-
-
-class SceneManager:
-    """Manages the scenes in the main thread of the running game."""
-
-    def __init__(self):
-        """Initialises the scene manager object."""
-
-        self.views = dict()
-        self.on_transition = False
-        self.fx_object = None
-        self.current_view = None
-
-    def add(self, view_name, scene_object):
-        """Adds a view to the scene manager.
-
-        Args:
-
-            view_name:
-                A name to the view. It will be used for example when
-                a scene change is requested.
-
-            scene_object:
-                A object that contains all the components to be drawn
-                on the screen.
-        """
-
-        scene_object.scene_manager = self
-        self.views[view_name] = scene_object
-
-    def show(self):
-        """Shows the current view. This function may not have only
-        one behavior
-        """
-
-        self.views[self.current_view].draw()
-        if self.on_transition:
-            self.fx_object.animate()
-
-    def update(self):
-        """It updates the components of the current scene in loop."""
-
-        if not self.on_transition:
-            self.views[self.current_view].update()
-
-    def update_on_event(self, event):
-        """It updates scenes based on events being read by the for
-        loop.
-
-        Args:
-
-            event:
-                A pygame Event object. This args is the event in the
-                for loop, that is responsible for reading each
-                event.
-        """
-
-        if not self.on_transition:
-            self.views[self.current_view].update_on_event(event)
-
-    def _change_view(self, view_name):
-        """It changes the current view directly."""
-
-        self.current_view = view_name
-
-    def change_view(self, view_name, fx=None):
-        """It changes the current scene with a special effect or
-        not.
-
-        Args:
-
-            view_name:
-                The codename of the view to be the new current_view.
-
-            fx:
-                A class that is responsible for a transition of
-                views. When none, the view is changed abruptly
-        """
-
-        if view_name != self.current_view:
-            if fx is not None:
-                self.fx_object = fx
-                self.on_transition = True
-            else:
-                # Changes the view abruptly.
-                self._change_view(view_name)
-
-    def initial_view(self, view_name):
-        """Sets the initial view for the scene manager."""
-
-        self.current_view = view_name

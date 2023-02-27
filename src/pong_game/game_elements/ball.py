@@ -1,7 +1,9 @@
 import pygame.sprite as sprite
 
-from .. import utils
-from .particle import Particle
+from core import utils
+from core.effects import Particle
+
+from .. import assets_path
 
 
 class Ball(sprite.Sprite):
@@ -30,8 +32,8 @@ class Ball(sprite.Sprite):
 
         self.on_game = on_game
 
-        self.image = utils.load_image("on_game/ball.png")
-        self.hit_soundfx = "on_game/soundfx/ball_hit.ogg"
+        self.image = utils.load_image(f"{assets_path}/on_game/ball.png")
+        self.hit_soundfx = utils.load_soundfx(f"{assets_path}/on_game/soundfx/ball_hit.ogg", 0.2)
         self.rect = self.image.get_rect()
 
         self.xspeed = 2
@@ -74,11 +76,13 @@ class Ball(sprite.Sprite):
                 or self.rect.right >= self.screen_rect.right:
 
             if self.on_game:
-                utils.play_soundfx(self.hit_soundfx)
+                self.hit_soundfx.play()
 
             self.xspeed *= -1
-            particles = Particle.create_particles(self.screen, self.rect.x,
-                                                  self.rect.y)
+            particles = Particle.create_particles(
+                self.screen,
+                utils.load_image(f"{assets_path}/on_game/particle.png"),
+                self.rect.x, self.rect.y)
             particles_group.append(particles)
         elif self.rect.top <= self.screen_rect.top \
                 or (self.rect.bottom >= self.screen_rect.bottom
@@ -88,8 +92,10 @@ class Ball(sprite.Sprite):
                 utils.play_soundfx(self.hit_soundfx)
 
             self.yspeed *= -1
-            particles = Particle.create_particles(self.screen, self.rect.x,
-                                                  self.rect.y)
+            particles = Particle.create_particles(
+                self.screen,
+                utils.load_image(f"{assets_path}/on_game/particle.png"),
+                self.rect.x, self.rect.y)
             particles_group.append(particles)
 
     def check_paddle_collision(self, paddle):
@@ -102,7 +108,7 @@ class Ball(sprite.Sprite):
         """
 
         if self.rect.colliderect(paddle.rect) and self.yspeed > 0:
-            utils.play_soundfx(self.hit_soundfx)
+            self.hit_soundfx.play()
             self.yspeed *= -1
 
     def update(self, particles_group, paddle=None):

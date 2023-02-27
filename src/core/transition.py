@@ -1,21 +1,25 @@
+"""Module for in-game transitions."""
+
 import pygame.surface as surface
 
 
 class Transition:
-    """Base class that is responsible for creating smooth
-    transitions.
+    """Base transition class.
+
+    Transition works in pair with SceneManager as Transition is the
+    one that actually changes from a scene to another but animated.
     """
 
-    def __init__(self, screen, scene_manager, next_view):
+    def __init__(self, screen: surface.Surface, scene_manager, next_scene):
         self.screen = screen
         self.screen_rect = screen.get_rect()
         self.scene_manager = scene_manager
-        self.next_view = next_view
+        self.next_view = next_scene
 
-    def animate(self):
+    def animate(self) -> None:
         pass
 
-    def clean(self):
+    def clean(self) -> None:
         """Always called in the end of the animate method."""
 
         self.scene_manager.on_transition = False
@@ -23,14 +27,11 @@ class Transition:
 
 
 class FadeTransition(Transition):
-    """Class responsible for manipulating the Surface in a way that
-    the screens is fading.
-    """
+    """Fade-in and Fade-out Transition."""
 
     def __init__(self, screen, scene_manager, next_view, fade_colour,
                  speed_factor=2):
         super().__init__(screen, scene_manager, next_view)
-        self.scene_manager = scene_manager
 
         # Fade elements
         self.fade_bg = surface.Surface(screen.get_size())
@@ -46,12 +47,13 @@ class FadeTransition(Transition):
         self.backwards = False
         self.c = 0
 
-    def animate(self):
+    def animate(self) -> None:
         """It fades the screen to the next view."""
 
         if self.on_fade:
             if self.c == 1:
-                self.scene_manager.change_view(self.next_view)
+                # The scene is covered. Change the scene
+                self.scene_manager.change_scene(self.next_view)
 
             self.alpha += self.factor
             if (self.alpha > 255 and not self.backwards) \
@@ -67,21 +69,3 @@ class FadeTransition(Transition):
                 self.on_fade = False
         else:
             self.clean()
-
-
-def floating_animation(*args):
-    """Simulates a floating object with a given sprite rect.
-
-    It utilises only three arguments: a component object, that is
-    custom object like Label and Button, y_limit_bottom and
-    y_limit_top respectively.
-    """
-
-    component = args[0]
-    y_limit_bottom = args[1]
-    y_limit_top = args[2]
-
-    if component.rect.bottom >= y_limit_bottom \
-            or component.rect.top <= y_limit_top:
-        component.yspeed *= -1
-    component.rect.y += component.yspeed
